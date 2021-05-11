@@ -9,18 +9,21 @@ public class Card
     public int number;
     public int value;
     public Sprite suit;
-    private Sprite numberSprite;
+    public Sprite numberSprite;
 
 
-    public Card(int number, int value, Sprite suit)
+    public Card(int number, int value, Sprite suit, Sprite numberSprite)
     {
         this.number = number;
         this.value = value;
         this.suit = suit;
-
-
+        this.numberSprite = numberSprite;
 
         
+
+    }
+    public Card()
+    {
 
     }
 }
