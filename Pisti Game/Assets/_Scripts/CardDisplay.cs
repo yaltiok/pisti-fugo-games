@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using DG.Tweening;
 using UnityEngine;
 
 public class CardDisplay : MonoBehaviour
@@ -10,6 +8,7 @@ public class CardDisplay : MonoBehaviour
     public SpriteRenderer suitRenderer;
     public SpriteRenderer numberRenderer;
     private FitCollider fitCollider;
+    public Vector3 positionInHand;
 
 
     void Start()
@@ -17,12 +16,8 @@ public class CardDisplay : MonoBehaviour
         fitCollider = GetComponent<FitCollider>();
         SetSprites();
         fitCollider.FitColliders(suitRenderer.sprite.bounds.size);
+        TweenToPosition(positionInHand);
 
-    }
-
-    void Update()
-    {
-        
     }
 
 
@@ -30,6 +25,12 @@ public class CardDisplay : MonoBehaviour
     {
         card.orientation *= -1;
         SetSprites();
+    }
+
+    public void TweenToPosition(Vector3 toPosition)
+    {
+        transform.DOMove(toPosition, 1f)
+            .SetEase(Ease.OutQuint);
     }
 
     public void SetSprites()

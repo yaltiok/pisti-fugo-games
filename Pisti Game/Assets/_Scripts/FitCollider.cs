@@ -5,8 +5,10 @@ using UnityEngine;
 public class FitCollider : MonoBehaviour
 {
 
+    public BoxCollider2D boxCollider;
+
     public void FitColliders(Vector2 S)
     {
-        GetComponent<BoxCollider2D>().size = S;
+        boxCollider.size = S;
     }
 }
