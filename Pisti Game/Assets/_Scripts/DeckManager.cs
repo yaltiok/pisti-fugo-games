@@ -1,7 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 public class DeckManager : MonoBehaviour
@@ -9,41 +7,134 @@ public class DeckManager : MonoBehaviour
 
     public ScriptableCard[] cards;
 
-    ArrayList currentDeck;
-    public TMP_Text textMeshPro;
+    public ArrayList currentDeck;
+    public TMP_Text deckTextElement;
+    private int deckCount;
+    
 
-    private DeckHelper deckHelper = new DeckHelper();
-
-    private float cardOffset = 1.4f;
-    private float xStart = -2.1f;
-
+    [HideInInspector]
+    public float cardOffset = 1.4f;
+    public Vector3 leftBottom;
 
     private void Awake()
     {
         CreateNewDeck();
     }
 
-    public IEnumerator DealHand(GameObject cardPrefab, int count, GameObject hand, int botFactor, Vector3 deckPos, Bot bot)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            ScriptableCard card = GetRandomCard();
 
-            Vector3 cardPos = hand.transform.position + new Vector3(xStart + cardOffset * i, .5f * botFactor);
-            GameObject cardObject = Instantiate(cardPrefab, deckPos, Quaternion.identity, hand.transform);
+    public void CreateHand(GameObject cardPrefab, int count, GameObject hand, int botFactor, Vector3 deckPos)
+    {
+        Debug.Log(count);
+        ScriptableCard[] arr = new ScriptableCard[count];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = GetRandomCard();
+        }
+        ArrayList objects;
+        ArrayList displays;
+
+
+        if (botFactor == 1)
+        {
+            Player player = hand.GetComponent<Player>();
+            objects = player.cardObjects;
+            displays = player.cardDisplays;
+        }
+        else
+        {
+            Bot bot = hand.GetComponent<Bot>();
+            objects = bot.cardObjects;
+            displays = bot.cardDisplays;
+
+        }
+
+        
+        for (int i = 0; i < arr.Length; i++)
+        {
+            ScriptableCard card = arr[i];
+
+            Vector3 cardPos = hand.transform.position + new Vector3((cardOffset * i) + leftBottom.x + cardOffset / 2, .5f * botFactor);
+            GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset,0,0), Quaternion.identity, hand.transform);
 
             card.orientation = botFactor;
 
             CardDisplay display = cardObject.gameObject.GetComponent<CardDisplay>();
             display.positionInHand = cardPos;
             display.card = card;
-            if (botFactor == -1)
-            {
-                bot.AddToCardObjects(cardObject);
-            }
-            yield return new WaitForSeconds(0.5f);
+            objects.Add(cardObject);
+            displays.Add(display);
 
         }
+        CardDisplay[] temp = CustomToArray(displays);
+        StartCoroutine(DealHand(temp));
+    }
+    
+
+    
+
+    public IEnumerator DealHand(CardDisplay[] arr)
+    {
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i].TweenToPosition(arr[i].positionInHand);
+            deckCount--;
+            deckTextElement.text = deckCount.ToString();
+            yield return new WaitForSeconds(.5f);
+        }
+    }
+
+
+    public GameObject CreateMiddleStack(GameObject cardPrefab, int count, Transform hand, Vector3 deckPos)
+    {
+
+        ScriptableCard[] arr = new ScriptableCard[count];
+        CardDisplay[] temp = new CardDisplay[count];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = GetRandomCard();
+        }
+        GameObject last = null;
+        for (int i = 0; i < arr.Length; i++)
+        {
+            ScriptableCard card = arr[i];
+
+            Vector3 cardPos = hand.position + new Vector3((cardOffset / 4) * -i + cardOffset / 2, 0f, 0.1f * (count - i));
+            GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset, 0, 0), Quaternion.identity, hand.transform);
+
+            CardDisplay display = cardObject.gameObject.GetComponent<CardDisplay>();
+            display.positionInHand = cardPos;
+
+
+            if (i != count - 1)
+            {
+                card.orientation = -1;
+            }
+            else
+            {
+                card.orientation = 1;
+                last = cardObject;
+
+            }
+            display.card = card;
+            temp[i] = display;
+
+        }
+        StartCoroutine(DealMiddle(temp));
+        return last;
+
+    }
+
+    public IEnumerator DealMiddle(CardDisplay[] arr)
+    {
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i].TweenToPosition(arr[i].positionInHand);
+            deckCount--;
+            deckTextElement.text = deckCount.ToString();
+            yield return new WaitForSeconds(.5f);
+
+        }
+
     }
 
     private ScriptableCard GetRandomCard()
@@ -51,7 +142,7 @@ public class DeckManager : MonoBehaviour
         int index = Random.Range(0, currentDeck.Count);
         ScriptableCard card = (ScriptableCard)currentDeck[index];
         currentDeck.RemoveAt(index);
-        textMeshPro.text = currentDeck.Count.ToString();
+        //deckTextElement.text = currentDeck.Count.ToString();
         return card;
     }
 
@@ -63,6 +154,28 @@ public class DeckManager : MonoBehaviour
         {
             currentDeck.Add(cards[i]);
         }
+        deckCount = currentDeck.Count;
+        ShuffleDeck();
+    }
+    private void ShuffleDeck()
+    {
+        for (int i = 0; i < currentDeck.Count; i++)
+        {
+            ScriptableCard tempCard = (ScriptableCard)currentDeck[i];
+            int randomIndex = Random.Range(i,currentDeck.Count);
+            currentDeck[i] = currentDeck[randomIndex];
+            currentDeck[randomIndex] = tempCard;
+        }
+    }
+
+    private CardDisplay[] CustomToArray(ArrayList list)
+    {
+        CardDisplay[] arr = new CardDisplay[list.Count];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = (CardDisplay)list[i];
+        }
+        return arr;
     }
 
 }

@@ -16,8 +16,7 @@ public class CardDisplay : MonoBehaviour
         fitCollider = GetComponent<FitCollider>();
         SetSprites();
         fitCollider.FitColliders(suitRenderer.sprite.bounds.size);
-        TweenToPosition(positionInHand);
-
+        
     }
 
 
@@ -32,6 +31,8 @@ public class CardDisplay : MonoBehaviour
         transform.DOMove(toPosition, 1f)
             .SetEase(Ease.OutQuint);
     }
+
+    
 
     public void SetSprites()
     {

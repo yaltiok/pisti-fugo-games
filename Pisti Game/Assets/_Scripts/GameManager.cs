@@ -7,45 +7,65 @@ public class GameManager : MonoBehaviour
 
     private const float CARD_Z_OFFSET = -0.1f;
     public int handCount = 4;
+    private int playerCount = 2;
+
+    private int roundControl = 0;
+    private int roundMax;
 
 
     public GameObject playerHand;
     public GameObject botHand;
     public DeckManager deckManager;
+    public TweenManager tweenManager;
     public AreaHighlight areaHighlight;
     public TMP_Text middleCountText;
+    public TMP_Text playerInfo;
+    public TMP_Text botInfo;
+
+    public Player playerScript;
+    public Bot botScript;
+
     public Transform middlePos;
     public Transform deckPosition;
     public GameObject cardPrefab;
-    public Bot bot;
+    public Sprite defaultCardSprite;
 
     private int middleCount = 0;
+    private float cardWidth;
 
 
-    private float rayTime = 1f;
-    private float rayCounter = 0f;
+
     private float camZ_Offset;
     private float cardZ_Offset = -1f;
 
-    private GameObject selected;
-    private CardDisplay selectedDisplay;
-    private GameObject lastPlayed;
-    private CardDisplay lastPlayedDisplay;
 
-    private bool holdingCard = false;
+    [HideInInspector]
+    public GameObject selected;
+    [HideInInspector]
+    public CardDisplay selectedDisplay;
+    [HideInInspector]
+    public GameObject lastPlayed;
+    [HideInInspector]
+    public CardDisplay lastPlayedDisplay;
+
+    [HideInInspector]
+    public bool holdingCard = false;
+    private bool firstCard = true;
 
     
-    
-    private int phase = 0; //0: Deal new hands 1: Player's turn 2: Bot's turn 3: Collecting cards from middle. 4: Transition
+    [HideInInspector]
+    public int phase = 0; //0: Deal new hands 1: Player's turn 2: Bot's turn 3: Collecting cards from middle. 4: Transition
 
     private Camera cam;
 
     void Start()
     {
-        cam = Camera.main;
-        camZ_Offset = -cam.transform.position.z;
+        roundMax = handCount * playerCount;
+        SetCamValues();
         SetHandPositions();
         SetDeckPosition();
+        CalculateCardPositions();
+        DealMiddle();
         DealNewHands();
     }
 
@@ -53,124 +73,9 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.Space) && a)
-        //{
-        //    a = false;
-        //    for (int i = 0; i < playerHand.transform.childCount; i++)
-        //    {
-        //        playerHand.transform.GetChild(i).GetComponent<CardDisplay>().SwitchOrientation();
-        //    }
-        //    for (int i = 0; i < botHand.transform.childCount; i++)
-        //    {
-        //        botHand.transform.GetChild(i).GetComponent<CardDisplay>().SwitchOrientation();
-        //    }
-        //}
-
-        if (phase == 2)
-        {
-            int a = bot.PlayCard();
-            selected = (GameObject)bot.cardObjects[a];
-            selectedDisplay = (CardDisplay)bot.cardDisplays[a];
-            bot.cardObjects.RemoveAt(a);
-            bot.cardDisplays.RemoveAt(a);
-            Vector3 toPos = middlePos.position + new Vector3(0, 0, cardZ_Offset);
-            cardZ_Offset += CARD_Z_OFFSET;
-            selectedDisplay.SwitchOrientation();
-            selectedDisplay.TweenToPosition(toPos);
-            if (lastPlayed != null)
-            {
-                if (lastPlayedDisplay.card.number == selectedDisplay.card.number)
-                {
-                    Debug.Log("HEYYYOOOOO!!");
-                }
-            }
-            lastPlayed = selected;
-            lastPlayedDisplay = selectedDisplay;
-            middleCount++;
-            middleCountText.text = middleCount.ToString();
-            selected.transform.SetParent(middlePos);
-            phase = 1;
-
-
-        }
-
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            if (!holdingCard)
-            {
-                RaycastHit2D hit = Physics2D.Raycast(cam.ScreenToWorldPoint(Input.mousePosition), cam.transform.forward);
-                if (hit.collider != null)
-                {
-                    selected = hit.transform.gameObject;
-                    selectedDisplay = selected.GetComponent<CardDisplay>();
-                    holdingCard = true;
-                }
-            }
-            else
-            {
-                if (selected.transform.localPosition.y > 2f)
-                {
-                    if (phase == 1)
-                    {
-                        // Play Card
-                        Vector3 toPos = middlePos.position + new Vector3(0, 0, cardZ_Offset);
-                        selectedDisplay.TweenToPosition(toPos);
-                        cardZ_Offset += CARD_Z_OFFSET;
-                        if (lastPlayed != null)
-                        {
-                            if (lastPlayedDisplay.card.number == selectedDisplay.card.number)
-                            {
-                                Debug.Log("HEYYYOOOOO!!");
-                            }
-                        }
-                        lastPlayed = selected;
-                        lastPlayedDisplay = selectedDisplay;
-                        middleCount++;
-                        middleCountText.text = middleCount.ToString();
-                        selected.transform.SetParent(middlePos);
-                        
-                        phase = 2;
-                    }
-                    else
-                    {
-                        Debug.Log("Sıranı Bekle!!");
-                        return;
-                    }
-                }
-                else
-                {
-                    //Put card back in hand
-                    selected.transform.position = selectedDisplay.positionInHand;
-                }
-                holdingCard = false;
-                selected = null;
-                selectedDisplay = null;
-                areaHighlight.ResetHighlight();
-            }
-            
-        }
-
-
+        BotMove();
+        //DealNewHands();
     }
-
-
-    private void FixedUpdate()
-    {
-        if (selected != null && holdingCard)
-        {
-            selected.transform.position = cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,Input.mousePosition.y, camZ_Offset));
-            if (selected.transform.localPosition.y > 2f)
-            {
-                areaHighlight.HighlightArea(0);
-            }
-            else
-            {
-                areaHighlight.HighlightArea(1);
-            }
-        }
-    }
-
 
     private void SetHandPositions()
     {
@@ -182,7 +87,6 @@ public class GameManager : MonoBehaviour
 
     }
 
-
     private void SetDeckPosition()
     {
         Vector3 deckPos = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, cam.pixelHeight / 2, camZ_Offset));
@@ -191,13 +95,159 @@ public class GameManager : MonoBehaviour
 
     private void DealNewHands()
     {
-        StartCoroutine(deckManager.DealHand(cardPrefab, handCount, playerHand, 1, deckPosition.position, bot));
-        StartCoroutine(deckManager.DealHand(cardPrefab, handCount, botHand, -1, deckPosition.position, bot));
-        phase = 1;
+        if (deckManager.currentDeck.Count <= 0)
+        {
+            Debug.Log("Game Over! Winner is: " + "Winner!");
+            return;
+        }
+        if (phase == 0)
+        {
+            deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, deckPosition.position);
+            deckManager.CreateHand(cardPrefab, handCount, botHand, -1, deckPosition.position);
+            ChangePhase(1);
+        }
+    }
+    private void DealMiddle()
+    {
+
+        lastPlayed = deckManager.CreateMiddleStack(cardPrefab, handCount, middlePos, deckPosition.position);
+        lastPlayedDisplay = lastPlayed.GetComponent<CardDisplay>();
+        middleCount = 4;
+        middleCountText.text = middleCount.ToString();
+
     }
 
-    private void PhaseChange()
+    public void CardPlayed(float length, int nextPhase, int player)
     {
+        if (firstCard)
+        {
+            for (int i = 0; i < middlePos.childCount; i++)
+            {
+                tweenManager.TweenToPoint(middlePos.GetChild(i).gameObject,middlePos.position,0.5f);
+            }
+            firstCard = false;
+        }
+
         phase = 4;
+        Vector3 z_Offset = new Vector3(0, 0, cardZ_Offset);
+        Vector3 toPos = middlePos.position + z_Offset;
+        selected.transform.position += z_Offset;
+        nextPhase = ControlRound(nextPhase);
+        tweenManager.CardPlayTween(selected, toPos,length, nextPhase);
+        cardZ_Offset += CARD_Z_OFFSET;
+        selected.transform.SetParent(middlePos);
+        middleCount++;
+        middleCountText.text = middleCount.ToString();
+
+        if (CheckMatchings())
+        {
+            CardDisplay[] middleCards = new CardDisplay[middleCount];
+            for (int i = 0; i < middleCount; i++)
+            {
+                middleCards[i] = middlePos.GetChild(i).GetComponent<CardDisplay>();
+            }
+            if (player == 1)
+            {
+                playerScript.AddToStash(middleCards);
+                UpdateInfoText(playerInfo, playerScript.turnPoint, playerScript.totalPoint);
+            }
+            else
+            {
+                botScript.AddToStash(middleCards);
+                UpdateInfoText(botInfo, botScript.turnPoint, botScript.totalPoint);
+            }
+
+        }
+        else
+        {
+            lastPlayed = selected;
+            lastPlayedDisplay = selectedDisplay;
+        }
     }
+
+    private int ControlRound(int nextPhase)
+    {
+        roundControl++;
+        if (roundControl >= roundMax)
+        {
+            phase = 0;
+            DealNewHands();
+            roundControl = 0;
+            return 1;
+        }
+        return nextPhase;
+    }
+
+
+    private void ChangePhase(int i)
+    {
+        phase = i;
+        if (i == 0)
+        {
+            DealNewHands();
+        }
+    }
+
+    private void BotMove()
+    {
+        if (phase == 2)
+        {
+            int a = botScript.PlayCard();
+            selected = (GameObject)botScript.cardObjects[a];
+            selectedDisplay = (CardDisplay)botScript.cardDisplays[a];
+            botScript.cardObjects.RemoveAt(a);
+            botScript.cardDisplays.RemoveAt(a);
+            selectedDisplay.SwitchOrientation();
+            //ChangePhase(4);
+            CardPlayed(.5f,1,-1);
+        }
+    }
+
+
+    private void UpdateInfoText(TMP_Text textElement, int turnPoint, int totalPoint)
+    {
+        string temp = textElement.text;
+        temp += turnPoint.ToString() + " | " + totalPoint.ToString(); 
+    }
+
+
+    private void SetCamValues()
+    {
+        cam = Camera.main;
+        camZ_Offset = -cam.transform.position.z;
+    }
+
+    private void CalculateCardPositions()
+    {
+        cardWidth = defaultCardSprite.bounds.extents.x * 2;
+        Vector3 leftBottom = cam.ScreenToWorldPoint(new Vector3(0, 0 , camZ_Offset));
+        Vector3 rightBottom = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, 0, camZ_Offset));
+
+        float diff = (rightBottom.x - leftBottom.x);
+        deckManager.leftBottom = leftBottom;
+        deckManager.cardOffset = diff / handCount;
+
+    }
+
+    private bool CheckMatchings()
+    {
+        if (lastPlayed != null)
+        {
+            if (lastPlayedDisplay.card.number == selectedDisplay.card.number)
+            {
+                Debug.Log("HEYYYOOOOO!!");
+                return true;
+                //A kind of pisti
+                if (middleCount == 1)
+                {
+                    // Big pisti
+                }
+
+
+            }
+        }
+        return false;
+    }
+
+
 }
