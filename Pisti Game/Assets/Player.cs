@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -11,6 +11,9 @@ public class Player : MonoBehaviour
 
     public AreaHighlight areaHighlight;
     public GameManager gameManager;
+    public TMP_Text infoText;
+    public GameObject stashObject;
+    private Vector3 stashPos;
 
     public ArrayList cardObjects = new ArrayList();
     public ArrayList cardDisplays = new ArrayList();
@@ -20,8 +23,11 @@ public class Player : MonoBehaviour
     private float camZ_Offset;
     private int holdIndex = -1;
 
+    [HideInInspector]
     public int turnPoint = 0;
+    [HideInInspector]
     public int totalPoint = 0;
+    [HideInInspector]
     public int stashCount = 0;
 
 
@@ -44,13 +50,15 @@ public class Player : MonoBehaviour
         HoldingCard();
     }
 
-    public void AddToStash(CardDisplay[] arr)
+    public void AddToStash(GameObject[] objects,CardDisplay[] displays)
     {
-        for (int i = 0; i < arr.Length; i++)
+        for (int i = 0; i < displays.Length; i++)
         {
-            turnPoint += arr[i].card.value;
+            turnPoint += displays[i].card.value;
             stashCount++;
         }
+        UpdateInfoText();
+        MoveToStash(objects, displays);
     }
 
     private void ResetValues()
@@ -145,6 +153,31 @@ public class Player : MonoBehaviour
             }
         }
         return -1;
+    }
+
+
+    public void UpdateInfoText()
+    {
+        string currentText = infoText.text;
+        string[] arr = currentText.Split(char.Parse("|"));
+        string temp = arr[0] + " | " + turnPoint + " | " + totalPoint;
+        infoText.text = temp;
+    }
+
+    public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
+    {
+        for (int i = 0; i < objects.Length; i++)
+        {
+            stash.Add(objects[i]);
+            objects[i].transform.parent = stashObject.transform;
+            cardDisplays[i].TweenToPosition(stashPos, 1f);
+
+        }
+    }
+
+    public void SetStashPos()
+    {
+        stashPos = stashObject.transform.position;
     }
 
 }

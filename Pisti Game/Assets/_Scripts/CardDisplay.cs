@@ -32,7 +32,13 @@ public class CardDisplay : MonoBehaviour
             .SetEase(Ease.OutQuint);
     }
 
-    
+    public void TweenToPosition(Vector3 toPosition, float length)
+    {
+        transform.DOMove(toPosition, 1f)
+            .SetEase(Ease.InBack);
+    }
+
+
 
     public void SetSprites()
     {

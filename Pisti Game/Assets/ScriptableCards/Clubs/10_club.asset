@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardName: 10_club
   number: 10
-  value: 1
+  value: 0
   suit: {fileID: 21300000, guid: 18b580e7180f4c04a8013773c9d00185, type: 3}
   numberSprite: {fileID: 21300000, guid: 7c9ddf8afc952be4b87dc5d912c8d283, type: 3}
   cardBack: {fileID: 21300000, guid: 8d9fc8ecc7ba3574b8e1964820dce405, type: 3}

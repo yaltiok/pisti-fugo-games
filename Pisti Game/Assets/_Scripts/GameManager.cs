@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -19,19 +18,14 @@ public class GameManager : MonoBehaviour
     public TweenManager tweenManager;
     public AreaHighlight areaHighlight;
     public TMP_Text middleCountText;
-    public TMP_Text playerInfo;
-    public TMP_Text botInfo;
 
     public Player playerScript;
     public Bot botScript;
 
     public Transform middlePos;
-    public Transform deckPosition;
     public GameObject cardPrefab;
-    public Sprite defaultCardSprite;
 
     private int middleCount = 0;
-    private float cardWidth;
 
 
 
@@ -84,33 +78,35 @@ public class GameManager : MonoBehaviour
 
         playerHand.transform.position = bottomCenter;
         botHand.transform.position = topCenter;
+        botScript.SetStashPos();
+        playerScript.SetStashPos();
 
     }
 
     private void SetDeckPosition()
     {
         Vector3 deckPos = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, cam.pixelHeight / 2, camZ_Offset));
-        deckPosition.position = deckPos;
+        deckManager.deckPos = deckPos;
+        //deckPosition.position = deckPos;
     }
 
     private void DealNewHands()
     {
-        if (deckManager.currentDeck.Count <= 0)
+
+        if (!CheckGameEnd())
         {
-            Debug.Log("Game Over! Winner is: " + "Winner!");
-            return;
-        }
-        if (phase == 0)
-        {
-            deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, deckPosition.position);
-            deckManager.CreateHand(cardPrefab, handCount, botHand, -1, deckPosition.position);
-            ChangePhase(1);
+            if (phase == 0)
+            {
+                deckManager.CreateHand(cardPrefab, handCount, playerHand, 1);
+                deckManager.CreateHand(cardPrefab, handCount, botHand, -1);
+                ChangePhase(1);
+            }
         }
     }
     private void DealMiddle()
     {
 
-        lastPlayed = deckManager.CreateMiddleStack(cardPrefab, handCount, middlePos, deckPosition.position);
+        lastPlayed = deckManager.CreateMiddleStack(cardPrefab, handCount, middlePos);
         lastPlayedDisplay = lastPlayed.GetComponent<CardDisplay>();
         middleCount = 4;
         middleCountText.text = middleCount.ToString();
@@ -127,10 +123,10 @@ public class GameManager : MonoBehaviour
             }
             firstCard = false;
         }
-
-        phase = 4;
+        ChangePhase(4);
         Vector3 z_Offset = new Vector3(0, 0, cardZ_Offset);
-        Vector3 toPos = middlePos.position + z_Offset;
+        Vector3 randomize = new Vector3(Random.Range(-.2f, .2f), Random.Range(-.2f, .2f),0);
+        Vector3 toPos = middlePos.position + z_Offset + randomize;
         selected.transform.position += z_Offset;
         nextPhase = ControlRound(nextPhase);
         tweenManager.CardPlayTween(selected, toPos,length, nextPhase);
@@ -138,31 +134,9 @@ public class GameManager : MonoBehaviour
         selected.transform.SetParent(middlePos);
         middleCount++;
         middleCountText.text = middleCount.ToString();
+        HandleMatches(player);
 
-        if (CheckMatchings())
-        {
-            CardDisplay[] middleCards = new CardDisplay[middleCount];
-            for (int i = 0; i < middleCount; i++)
-            {
-                middleCards[i] = middlePos.GetChild(i).GetComponent<CardDisplay>();
-            }
-            if (player == 1)
-            {
-                playerScript.AddToStash(middleCards);
-                UpdateInfoText(playerInfo, playerScript.turnPoint, playerScript.totalPoint);
-            }
-            else
-            {
-                botScript.AddToStash(middleCards);
-                UpdateInfoText(botInfo, botScript.turnPoint, botScript.totalPoint);
-            }
-
-        }
-        else
-        {
-            lastPlayed = selected;
-            lastPlayedDisplay = selectedDisplay;
-        }
+        
     }
 
     private int ControlRound(int nextPhase)
@@ -192,22 +166,8 @@ public class GameManager : MonoBehaviour
     {
         if (phase == 2)
         {
-            int a = botScript.PlayCard();
-            selected = (GameObject)botScript.cardObjects[a];
-            selectedDisplay = (CardDisplay)botScript.cardDisplays[a];
-            botScript.cardObjects.RemoveAt(a);
-            botScript.cardDisplays.RemoveAt(a);
-            selectedDisplay.SwitchOrientation();
-            //ChangePhase(4);
-            CardPlayed(.5f,1,-1);
+            botScript.PlayCard(lastPlayedDisplay);
         }
-    }
-
-
-    private void UpdateInfoText(TMP_Text textElement, int turnPoint, int totalPoint)
-    {
-        string temp = textElement.text;
-        temp += turnPoint.ToString() + " | " + totalPoint.ToString(); 
     }
 
 
@@ -219,7 +179,6 @@ public class GameManager : MonoBehaviour
 
     private void CalculateCardPositions()
     {
-        cardWidth = defaultCardSprite.bounds.extents.x * 2;
         Vector3 leftBottom = cam.ScreenToWorldPoint(new Vector3(0, 0 , camZ_Offset));
         Vector3 rightBottom = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, 0, camZ_Offset));
 
@@ -229,22 +188,97 @@ public class GameManager : MonoBehaviour
 
     }
 
-    private bool CheckMatchings()
+    private bool CheckMatchings(int player)
     {
         if (lastPlayed != null)
         {
             if (lastPlayedDisplay.card.number == selectedDisplay.card.number)
             {
-                Debug.Log("HEYYYOOOOO!!");
-                return true;
                 //A kind of pisti
-                if (middleCount == 1)
+                if (middleCount == 2)
                 {
                     // Big pisti
+                    if (player == 1)
+                    {
+                        playerScript.turnPoint += 10;
+                    }
+                    else
+                    {
+                        botScript.turnPoint += 10;
+                    }
                 }
-
-
+                return true;
+            }else if (selectedDisplay.card.number == 11) // Jack played.
+            {
+                return true;
             }
+        }
+        return false;
+    }
+
+    private void HandleMatches(int player)
+    {
+        if (CheckMatchings(player))
+        {
+            CardDisplay[] middleCards = new CardDisplay[middleCount];
+            GameObject[] middleObjects = new GameObject[middleCount];
+            for (int i = 0; i < middleCount; i++)
+            {
+                middleObjects[i] = middlePos.GetChild(i).gameObject;
+                middleCards[i] = middleObjects[i].GetComponent<CardDisplay>();
+            }
+            if (player == 1)
+            {
+                playerScript.AddToStash(middleObjects, middleCards);
+            }
+            else
+            {
+                botScript.AddToStash(middleObjects, middleCards);
+            }
+            middleCount = 0;
+            middleCountText.text = middleCount.ToString();
+            cardZ_Offset = -1;
+            selected = null;
+            lastPlayed = null;
+            selectedDisplay = null;
+            lastPlayedDisplay = null;
+        }
+        else
+        {
+            lastPlayed = selected;
+            lastPlayedDisplay = selectedDisplay;
+        }
+    }
+
+
+    private bool CheckGameEnd()
+    {
+        if (deckManager.currentDeck.Count <= 0)
+        {
+
+            int a = playerScript.stashCount;
+            int b = botScript.stashCount;
+            if (a > b)
+            {
+                playerScript.turnPoint += 3;
+                playerScript.UpdateInfoText();
+            }
+            else if (a < b)
+            {
+                botScript.turnPoint += 3;
+                botScript.UpdateInfoText();
+            }
+            string winner = "";
+            if (playerScript.turnPoint > botScript.turnPoint)
+            {
+                winner = "player";
+            }
+            else
+            {
+                winner = "bot";
+            }
+            Debug.Log("Game Over! Winner is: " + winner);
+            return true;
         }
         return false;
     }

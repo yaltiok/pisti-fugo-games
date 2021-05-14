@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardName: 2_heart
   number: 2
-  value: 1
+  value: 0
   suit: {fileID: 21300000, guid: 5d19df4dd68791b468045a558227c935, type: 3}
   numberSprite: {fileID: 21300000, guid: 2dcdaef56a62ca2498f63d6fd4110b5b, type: 3}
   cardBack: {fileID: 21300000, guid: 8d9fc8ecc7ba3574b8e1964820dce405, type: 3}

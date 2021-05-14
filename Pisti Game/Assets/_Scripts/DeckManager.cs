@@ -9,7 +9,9 @@ public class DeckManager : MonoBehaviour
 
     public ArrayList currentDeck;
     public TMP_Text deckTextElement;
+    public GameObject deck;
     private int deckCount;
+    public Vector3 deckPos;
     
 
     [HideInInspector]
@@ -21,10 +23,14 @@ public class DeckManager : MonoBehaviour
         CreateNewDeck();
     }
 
-
-    public void CreateHand(GameObject cardPrefab, int count, GameObject hand, int botFactor, Vector3 deckPos)
+    private void Start()
     {
-        Debug.Log(count);
+        deck.transform.position = deckPos;
+    }
+
+
+    public void CreateHand(GameObject cardPrefab, int count, GameObject hand, int botFactor)
+    {
         ScriptableCard[] arr = new ScriptableCard[count];
         for (int i = 0; i < arr.Length; i++)
         {
@@ -84,7 +90,7 @@ public class DeckManager : MonoBehaviour
     }
 
 
-    public GameObject CreateMiddleStack(GameObject cardPrefab, int count, Transform hand, Vector3 deckPos)
+    public GameObject CreateMiddleStack(GameObject cardPrefab, int count, Transform hand)
     {
 
         ScriptableCard[] arr = new ScriptableCard[count];
