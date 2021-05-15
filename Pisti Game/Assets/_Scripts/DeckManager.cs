@@ -59,7 +59,7 @@ public class DeckManager : MonoBehaviour
         {
             ScriptableCard card = arr[i];
 
-            Vector3 cardPos = hand.transform.position + new Vector3((cardOffset * i) + leftBottom.x + cardOffset / 2, .5f * botFactor);
+            Vector3 cardPos = hand.transform.position + new Vector3((cardOffset * (i + .5f)) + leftBottom.x, .5f * botFactor);
             GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset,0,0), Quaternion.identity, hand.transform);
 
             card.orientation = botFactor;
@@ -67,6 +67,7 @@ public class DeckManager : MonoBehaviour
             CardDisplay display = cardObject.gameObject.GetComponent<CardDisplay>();
             display.positionInHand = cardPos;
             display.card = card;
+            display.player = botFactor;
             objects.Add(cardObject);
             displays.Add(display);
 

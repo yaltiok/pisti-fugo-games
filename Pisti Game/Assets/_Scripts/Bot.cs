@@ -14,6 +14,7 @@ public class Bot : MonoBehaviour
     public GameObject stashObject;
     public GameManager gameManager;
     private Vector3 stashPos;
+    public float screenWidth;
 
 
 
@@ -83,7 +84,7 @@ public class Bot : MonoBehaviour
         {
             stash.Add(objects[i]);
             objects[i].transform.parent = stashObject.transform;
-            cardDisplays[i].TweenToPosition(stashPos, 1f);
+            cardDisplays[i].TweenWithEaseInBack(stashPos, 1f);
             
         }
     }
@@ -104,11 +105,27 @@ public class Bot : MonoBehaviour
         cardObjects.RemoveAt(i);
         cardDisplays.RemoveAt(i);
         gameManager.CardPlayed(.5f, 1, -1);
+        if (cardObjects.Count < 4)
+        {
+            RepositionCards();
+        }
     }
 
     private void RandomMove()
     {
         int a = Random.Range(0, cardDisplays.Count);
         Move(a);
+    }
+
+    public void RepositionCards()
+    {
+        float a = screenWidth / cardDisplays.Count;
+        for (int i = 0; i < cardDisplays.Count; i++)
+        {
+            CardDisplay temp = (CardDisplay)cardDisplays[i];
+            float x = transform.position.x + a * (i + .5f) - screenWidth / 2;
+
+            temp.TweenX(x, .2f);
+        }
     }
 }

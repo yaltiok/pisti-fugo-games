@@ -215,7 +215,9 @@ MonoBehaviour:
   card: {fileID: 0}
   suitRenderer: {fileID: 5999321086772763859}
   numberRenderer: {fileID: 5999321087271042078}
+  tweenManager: {fileID: 0}
   positionInHand: {x: 0, y: 0, z: 0}
+  player: 0
 --- !u!61 &5603871320830452657
 BoxCollider2D:
   m_ObjectHideFlags: 0

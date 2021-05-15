@@ -9,6 +9,7 @@ public class CardDisplay : MonoBehaviour
     public SpriteRenderer numberRenderer;
     private FitCollider fitCollider;
     public Vector3 positionInHand;
+    public int player = 0;
 
 
     void Start()
@@ -34,8 +35,22 @@ public class CardDisplay : MonoBehaviour
 
     public void TweenToPosition(Vector3 toPosition, float length)
     {
-        transform.DOMove(toPosition, 1f)
+        transform.DOMove(toPosition, length)
+            .SetEase(Ease.OutQuint);
+    }
+    public void TweenWithEaseInBack(Vector3 toPosition, float length)
+    {
+        transform.DOMove(toPosition, length)
             .SetEase(Ease.InBack);
+    }
+
+    public void TweenX(float newX, float length)
+    {
+        transform.DOMoveX(newX, length)
+            .SetEase(Ease.OutQuint)
+            .OnComplete(() => {
+                positionInHand.x = gameObject.transform.position.x;
+            });
     }
 
 

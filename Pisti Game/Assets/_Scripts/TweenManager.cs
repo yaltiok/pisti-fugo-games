@@ -21,4 +21,10 @@ public class TweenManager : MonoBehaviour
         obj.transform.DOMove(toPosition, length)
             .SetEase(Ease.OutQuint);
     }
+
+    public void TweenX(GameObject obj, float newX, float length)
+    {
+        obj.transform.DOMoveX(newX, length)
+            .SetEase(Ease.OutQuint);
+    }
 }

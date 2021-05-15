@@ -437,7 +437,6 @@ MonoBehaviour:
   middlePos: {fileID: 1339531506}
   cardPrefab: {fileID: 5999321088057076238, guid: 730e8b41b97dbd44ea590c2c61881aef,
     type: 3}
-  defaultCardSprite: {fileID: 21300000, guid: 8d9fc8ecc7ba3574b8e1964820dce405, type: 3}
   selected: {fileID: 0}
   selectedDisplay: {fileID: 0}
   lastPlayed: {fileID: 0}
@@ -1935,6 +1934,7 @@ MonoBehaviour:
   gameManager: {fileID: 181335629}
   infoText: {fileID: 1971228838}
   stashObject: {fileID: 186942912}
+  lastCardZ: 0
   turnPoint: 0
   totalPoint: 0
   stashCount: 0

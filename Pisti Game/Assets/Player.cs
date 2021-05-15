@@ -1,9 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+
+    private const float HOLDING_OFFSET = -0.1f;
     Camera cam;
     private GameObject selected;
     private CardDisplay selectedDisplay;
@@ -14,6 +17,8 @@ public class Player : MonoBehaviour
     public TMP_Text infoText;
     public GameObject stashObject;
     private Vector3 stashPos;
+    public float lastCardZ;
+
 
     public ArrayList cardObjects = new ArrayList();
     public ArrayList cardDisplays = new ArrayList();
@@ -70,6 +75,7 @@ public class Player : MonoBehaviour
 
     private void CardHandle()
     {
+        
         if (Input.GetMouseButtonDown(0))
         {
             if (!holdingCard)
@@ -91,15 +97,14 @@ public class Player : MonoBehaviour
         {
             if (holdingCard)
             {
-                if (selected.transform.localPosition.y > 2f)
+                if (selected.transform.localPosition.y > 2f && selectedDisplay.player == 1)
                 {
                     if (gameManager.phase == 1)
                     {
                         // Play Card
-                        //ChangePhase(4);
-                        gameManager.CardPlayed(1f,2,1);
                         cardObjects.RemoveAt(holdIndex);
                         cardDisplays.RemoveAt(holdIndex);
+                        gameManager.CardPlayed(1f,2,1);
                         holdIndex = -1;
 
                     }
@@ -119,6 +124,9 @@ public class Player : MonoBehaviour
                 selectedDisplay = null;
                 areaHighlight.ResetHighlight();
             }
+        }else if (holdingCard)
+        {
+            SwapCardPlaces();
         }
     }
 
@@ -126,7 +134,7 @@ public class Player : MonoBehaviour
     {
         if (selected != null && holdingCard)
         {
-            selected.transform.position = cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, camZ_Offset));
+            selected.transform.position = cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, camZ_Offset + lastCardZ));
             if (selected.transform.localPosition.y > 2f)
             {
                 areaHighlight.HighlightArea(0);
@@ -170,7 +178,7 @@ public class Player : MonoBehaviour
         {
             stash.Add(objects[i]);
             objects[i].transform.parent = stashObject.transform;
-            cardDisplays[i].TweenToPosition(stashPos, 1f);
+            cardDisplays[i].TweenWithEaseInBack(stashPos, 1f);
 
         }
     }
@@ -178,6 +186,54 @@ public class Player : MonoBehaviour
     public void SetStashPos()
     {
         stashPos = stashObject.transform.position;
+    }
+
+
+    public void RepositionCards(float screenWidth)
+    {
+        float a = screenWidth / cardDisplays.Count;
+        for (int i = 0; i < cardDisplays.Count ; i++)
+        {
+            CardDisplay temp = (CardDisplay)cardDisplays[i];
+            float x = transform.position.x + a * (i + .5f) - screenWidth / 2;
+
+            temp.TweenX(x, .2f);
+        }
+    }
+
+    private void SwapCardPlaces()
+    {
+        for (int i = 0; i < cardObjects.Count; i++)
+        {
+            GameObject otherObject = (GameObject)cardObjects[i];
+            CardDisplay otherDisplay = (CardDisplay)cardDisplays[i];
+            if (holdIndex > i && otherObject.transform.position.x > selected.transform.position.x)
+            {
+                //Soluna geçti mi diye bak. X i onlardan küçük mü diye.
+                //Swap the two
+                SwapTwo(otherObject, otherDisplay, i);
+            }
+            else if(holdIndex < i && otherObject.transform.position.x < selected.transform.position.x)
+            {
+                //Sağına geçti mi diye bak. X i onlardan büyük mü diye.
+                SwapTwo(otherObject, otherDisplay, i);
+            }
+        }
+    }
+
+    private void SwapTwo(GameObject otherObject, CardDisplay otherDisplay, int i)
+    {
+        Vector3 tempPos = otherDisplay.positionInHand;
+        GameObject tempObject = otherObject;
+        CardDisplay tempDisplay = otherDisplay;
+        cardObjects[i] = cardObjects[holdIndex];
+        cardObjects[holdIndex] = tempObject;
+        cardDisplays[i] = cardDisplays[holdIndex];
+        cardDisplays[holdIndex] = tempDisplay;
+        otherDisplay.TweenX(selectedDisplay.positionInHand.x, .3f);
+        otherDisplay.positionInHand = selectedDisplay.positionInHand;
+        selectedDisplay.positionInHand = tempPos;
+        holdIndex = i;
     }
 
 }

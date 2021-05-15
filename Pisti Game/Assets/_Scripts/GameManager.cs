@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -31,6 +32,9 @@ public class GameManager : MonoBehaviour
 
     private float camZ_Offset;
     private float cardZ_Offset = -1f;
+    private Vector3 leftBottom;
+    private Vector3 rightBottom;
+    private float screenWidthInWorld;
 
 
     [HideInInspector]
@@ -58,12 +62,14 @@ public class GameManager : MonoBehaviour
         SetCamValues();
         SetHandPositions();
         SetDeckPosition();
-        CalculateCardPositions();
+        CalculateCardPositions(handCount);
         DealMiddle();
         DealNewHands();
+        playerScript.lastCardZ = cardZ_Offset;
+
     }
 
-    
+
 
     void Update()
     {
@@ -115,28 +121,44 @@ public class GameManager : MonoBehaviour
 
     public void CardPlayed(float length, int nextPhase, int player)
     {
-        if (firstCard)
-        {
-            for (int i = 0; i < middlePos.childCount; i++)
-            {
-                tweenManager.TweenToPoint(middlePos.GetChild(i).gameObject,middlePos.position,0.5f);
-            }
-            firstCard = false;
-        }
+        RepositionHand(player);
+        IsFirstCard();
+        
         ChangePhase(4);
         Vector3 z_Offset = new Vector3(0, 0, cardZ_Offset);
-        Vector3 randomize = new Vector3(Random.Range(-.2f, .2f), Random.Range(-.2f, .2f),0);
+        Vector3 randomize = new Vector3(UnityEngine.Random.Range(-.25f, .25f), UnityEngine.Random.Range(-.25f, .25f),0);
         Vector3 toPos = middlePos.position + z_Offset + randomize;
         selected.transform.position += z_Offset;
         nextPhase = ControlRound(nextPhase);
         tweenManager.CardPlayTween(selected, toPos,length, nextPhase);
         cardZ_Offset += CARD_Z_OFFSET;
+        playerScript.lastCardZ = cardZ_Offset;
         selected.transform.SetParent(middlePos);
         middleCount++;
         middleCountText.text = middleCount.ToString();
         HandleMatches(player);
 
         
+    }
+
+    private void IsFirstCard()
+    {
+        if (firstCard)
+        {
+            for (int i = 0; i < middlePos.childCount; i++)
+            {
+                tweenManager.TweenToPoint(middlePos.GetChild(i).gameObject, middlePos.position, 0.5f);
+            }
+            firstCard = false;
+        }
+    }
+
+    private void RepositionHand(int player)
+    {
+        if (player == 1)
+        {
+            playerScript.RepositionCards(screenWidthInWorld);
+        }
     }
 
     private int ControlRound(int nextPhase)
@@ -175,17 +197,17 @@ public class GameManager : MonoBehaviour
     {
         cam = Camera.main;
         camZ_Offset = -cam.transform.position.z;
+        leftBottom = cam.ScreenToWorldPoint(new Vector3(0, 0, camZ_Offset));
+        rightBottom = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, 0, camZ_Offset));
+        screenWidthInWorld = (rightBottom.x - leftBottom.x);
+        botScript.screenWidth = screenWidthInWorld;
+
     }
 
-    private void CalculateCardPositions()
+    private void CalculateCardPositions(int cardCount)
     {
-        Vector3 leftBottom = cam.ScreenToWorldPoint(new Vector3(0, 0 , camZ_Offset));
-        Vector3 rightBottom = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, 0, camZ_Offset));
-
-        float diff = (rightBottom.x - leftBottom.x);
         deckManager.leftBottom = leftBottom;
-        deckManager.cardOffset = diff / handCount;
-
+        deckManager.cardOffset = screenWidthInWorld / cardCount;
     }
 
     private bool CheckMatchings(int player)
