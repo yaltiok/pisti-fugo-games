@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using TMPro;
-using System;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
+
+    private const float DEAL_TIME = 0.2f;
+
 
     private const float CARD_Z_OFFSET = -0.1f;
     public int handCount = 4;
@@ -63,8 +66,9 @@ public class GameManager : MonoBehaviour
         SetHandPositions();
         SetDeckPosition();
         CalculateCardPositions(handCount);
-        DealMiddle();
-        DealNewHands();
+        //DealMiddle();
+        //DealNewHands();
+        StartCoroutine(DealFirstHands());
         playerScript.lastCardZ = cardZ_Offset;
 
     }
@@ -103,12 +107,11 @@ public class GameManager : MonoBehaviour
         {
             if (phase == 0)
             {
-                deckManager.CreateHand(cardPrefab, handCount, playerHand, 1);
-                deckManager.CreateHand(cardPrefab, handCount, botHand, -1);
-                ChangePhase(1);
+                StartCoroutine(DealHands());
             }
         }
     }
+    
     private void DealMiddle()
     {
 
@@ -118,6 +121,30 @@ public class GameManager : MonoBehaviour
         middleCountText.text = middleCount.ToString();
 
     }
+
+    public IEnumerator DealFirstHands()
+    {
+        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1);
+        yield return new WaitForSeconds(handCount * DEAL_TIME);
+        deckManager.CreateHand(cardPrefab, handCount, botHand, -1);
+        yield return new WaitForSeconds(handCount * DEAL_TIME);
+        DealMiddle();
+        yield return new WaitForSeconds(handCount * DEAL_TIME);
+        ChangePhase(1);
+
+    }
+
+    public IEnumerator DealHands()
+    {
+        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1);
+        yield return new WaitForSeconds(handCount * DEAL_TIME);
+        deckManager.CreateHand(cardPrefab, handCount, botHand, -1);
+        yield return new WaitForSeconds(handCount * DEAL_TIME);
+        ChangePhase(1);
+
+    }
+
+
 
     public void CardPlayed(float length, int nextPhase, int player)
     {
@@ -136,6 +163,8 @@ public class GameManager : MonoBehaviour
         selected.transform.SetParent(middlePos);
         middleCount++;
         middleCountText.text = middleCount.ToString();
+        selectedDisplay.player = 0;
+        selected.transform.tag = "Middle";
         HandleMatches(player);
 
         

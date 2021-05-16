@@ -83,48 +83,53 @@ public class Player : MonoBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(cam.ScreenToWorldPoint(Input.mousePosition), cam.transform.forward);
                 if (hit.collider != null)
                 {
-                    selected = hit.transform.gameObject;
-                    selectedDisplay = selected.GetComponent<CardDisplay>();
-                    gameManager.selected = selected;
-                    gameManager.selectedDisplay = selectedDisplay;
-                    holdingCard = true;
-                    holdIndex = GetCardIndex();
+                    if (!hit.transform.CompareTag("Middle"))
+                    {
+                        selected = hit.transform.gameObject;
+                        selectedDisplay = selected.GetComponent<CardDisplay>();
+                        gameManager.selected = selected;
+                        gameManager.selectedDisplay = selectedDisplay;
+                        holdingCard = true;
+                        if (selectedDisplay.player == 1)
+                        {
+                            holdIndex = GetCardIndex();
+                        }
+                    }
                 }
             }
             
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            if (holdingCard)
+            if (gameManager.phase == 1)
             {
-                if (selected.transform.localPosition.y > 2f && selectedDisplay.player == 1)
+                if (holdingCard)
                 {
-                    if (gameManager.phase == 1)
+                    if (selected.transform.localPosition.y > 2f && selectedDisplay.player == 1)
                     {
                         // Play Card
                         cardObjects.RemoveAt(holdIndex);
                         cardDisplays.RemoveAt(holdIndex);
-                        gameManager.CardPlayed(1f,2,1);
+                        gameManager.CardPlayed(1f, 2, 1);
                         holdIndex = -1;
-
                     }
                     else
                     {
-                        Debug.Log("Sıranı Bekle!!");
                         selected.transform.position = selectedDisplay.positionInHand;
                     }
                 }
-                else
-                {
-                    //Put card back in hand
-                    selected.transform.position = selectedDisplay.positionInHand;
-                }
-                holdingCard = false;
-                selected = null;
-                selectedDisplay = null;
-                areaHighlight.ResetHighlight();
+                
             }
-        }else if (holdingCard)
+            else
+            {
+                selected.transform.position = selectedDisplay.positionInHand;
+            }
+            holdingCard = false;
+            selected = null;
+            selectedDisplay = null;
+            areaHighlight.ResetHighlight();
+        }
+        else if (holdingCard && gameManager.phase != 0 && selectedDisplay.player == 1)
         {
             SwapCardPlaces();
         }

@@ -5,6 +5,8 @@ using TMPro;
 public class DeckManager : MonoBehaviour
 {
 
+    private const float DEAL_TIME = 0.2f;
+
     public ScriptableCard[] cards;
 
     public ArrayList currentDeck;
@@ -86,7 +88,7 @@ public class DeckManager : MonoBehaviour
             arr[i].TweenToPosition(arr[i].positionInHand);
             deckCount--;
             deckTextElement.text = deckCount.ToString();
-            yield return new WaitForSeconds(.5f);
+            yield return new WaitForSeconds(DEAL_TIME);
         }
     }
 
@@ -123,6 +125,8 @@ public class DeckManager : MonoBehaviour
 
             }
             display.card = card;
+            display.player = 0;
+            cardObject.transform.tag = "Middle";
             temp[i] = display;
 
         }
@@ -138,7 +142,7 @@ public class DeckManager : MonoBehaviour
             arr[i].TweenToPosition(arr[i].positionInHand);
             deckCount--;
             deckTextElement.text = deckCount.ToString();
-            yield return new WaitForSeconds(.5f);
+            yield return new WaitForSeconds(DEAL_TIME);
 
         }
 
