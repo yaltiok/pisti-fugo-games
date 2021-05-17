@@ -31,7 +31,7 @@ public class DeckManager : MonoBehaviour
     }
 
 
-    public void CreateHand(GameObject cardPrefab, int count, GameObject hand, int botFactor)
+    public void CreateHand(GameObject cardPrefab, int count, GameObject hand, int botFactor, float gap)
     {
         ScriptableCard[] arr = new ScriptableCard[count];
         for (int i = 0; i < arr.Length; i++)
@@ -60,8 +60,7 @@ public class DeckManager : MonoBehaviour
         for (int i = 0; i < arr.Length; i++)
         {
             ScriptableCard card = arr[i];
-            float offsetFactor = 0.1f * 0.5f; //Make this work!!
-            Vector3 cardPos = hand.transform.position + new Vector3(cardOffset * (i - 1.5f), .5f * botFactor);
+            Vector3 cardPos = hand.transform.position + new Vector3((-count / 2f + .5f + i) * cardOffset + (i - ((count - 1) / 2f)) * gap, .5f * botFactor);
             GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset,0,0), Quaternion.identity, hand.transform);
 
             card.orientation = botFactor;
@@ -153,7 +152,6 @@ public class DeckManager : MonoBehaviour
         int index = Random.Range(0, currentDeck.Count);
         ScriptableCard card = (ScriptableCard)currentDeck[index];
         currentDeck.RemoveAt(index);
-        //deckTextElement.text = currentDeck.Count.ToString();
         return card;
     }
 

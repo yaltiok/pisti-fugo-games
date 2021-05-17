@@ -90,6 +90,8 @@ public class Player : MonoBehaviour
                         gameManager.selected = selected;
                         gameManager.selectedDisplay = selectedDisplay;
                         holdingCard = true;
+                        //selectedDisplay.shadow.SetActive(true);
+                        ShadowTween(selectedDisplay, true);
                         if (selectedDisplay.player == 1)
                         {
                             holdIndex = GetCardIndex();
@@ -117,20 +119,22 @@ public class Player : MonoBehaviour
                 }
                 else
                 {
-                    selected.transform.position = selectedDisplay.positionInHand;
+                    PutBackInHand();
                 }
             }
             else
             {
-                selected.transform.position = selectedDisplay.positionInHand;
+                PutBackInHand();
             }
             holdingCard = false;
             selected = null;
+            //selectedDisplay.shadow.SetActive(false);
+            ShadowTween(selectedDisplay, false);
             selectedDisplay = null;
             areaHighlight.ResetHighlight();
-            
+
         }
-        else if (holdingCard && gameManager.phase != 0 && selectedDisplay.player == 1)
+        else if (holdingCard && gameManager.phase != 0 && selectedDisplay.player == 1 && selected.transform.localPosition.y < 2f)
         {
             SwapCardPlaces();
         }
@@ -152,9 +156,10 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void ChangePhase(int i)
+    private void PutBackInHand()
     {
-        gameManager.phase = i;
+        selectedDisplay.TweenToPosition(selectedDisplay.positionInHand,0.5f);
+
     }
 
     private int GetCardIndex()
@@ -178,15 +183,41 @@ public class Player : MonoBehaviour
         infoText.text = temp;
     }
 
+    //public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
+    //{
+    //    bool last = false;
+    //    for (int i = 0; i < objects.Length; i++)
+    //    {
+    //        stash.Add(objects[i]);
+    //        objects[i].transform.SetParent(stashObject.transform);
+    //        if (i == objects.Length - 1)
+    //        {
+    //            last = true;
+    //        }
+    //        cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 2, .5f + i * .02f, last);
+
+    //    }
+    //}
+
     public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
     {
-        for (int i = 0; i < objects.Length; i++)
+        bool last = false;
+        for (int i = objects.Length - 1; i >= 0; i--)
         {
             stash.Add(objects[i]);
-            objects[i].transform.parent = stashObject.transform;
-            cardDisplays[i].TweenWithEaseInBack(stashPos, 1f);
+            objects[i].transform.SetParent(stashObject.transform);
+            if (i == 0)
+            {
+                last = true;
+            }
+            cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 2, .5f + i * .06f, last);
 
         }
+    }
+
+    private void ShadowTween(CardDisplay display, bool up)
+    {
+        display.ShadowTween(up);
     }
 
     public void SetStashPos()
@@ -195,29 +226,17 @@ public class Player : MonoBehaviour
     }
 
 
-    public void RepositionCards(float cardWidth)
+    public void RepositionCards(float cardWidth, float gap)
     {
-        if (cardObjects.Count%2 == 0)
+        float a = cardObjects.Count;
+        for (int i = 0; i < cardDisplays.Count; i++)
         {
-            for (int i = 0; i < cardDisplays.Count; i++)
-            {
-                CardDisplay temp = (CardDisplay)cardDisplays[i];
-                float x = transform.position.x + cardWidth * (i - .5f); // HAND POSITION ÜZERİNE EKLE
+            CardDisplay temp = (CardDisplay)cardDisplays[i];
+            float x = transform.position.x + (-a / 2f + .5f + i) * cardWidth + (i  - ((a - 1) / 2f)) * gap;
 
-                temp.TweenX(x, .2f);
-            }
+            temp.TweenX(x, .2f);
         }
-        else
-        {
-            for (int i = 0; i < cardDisplays.Count; i++)
-            {
-                CardDisplay temp = (CardDisplay)cardDisplays[i];
-                float x = transform.position.x + cardWidth * (i - 1f);
-
-                temp.TweenX(x, .2f);
-            }
-        }
-        
+         
     }
 
     private void SwapCardPlaces()

@@ -12,6 +12,10 @@ public class TweenManager : MonoBehaviour
             .SetEase(Ease.OutQuint)
             .OnComplete(() => {
                 gameManager.phase = nextPhase;
+                if (nextPhase == 2)
+                {
+                    gameManager.BotMove();
+                }
             });
     }
 
@@ -22,9 +26,40 @@ public class TweenManager : MonoBehaviour
             .SetEase(Ease.OutQuint);
     }
 
+    public void TweenToLocal(GameObject obj, Vector3 toPosition, float length)
+    {
+        obj.transform.DOLocalMove(toPosition, length)
+            .SetEase(Ease.OutQuint);
+    }
+
     public void TweenX(GameObject obj, float newX, float length)
     {
         obj.transform.DOMoveX(newX, length)
             .SetEase(Ease.OutQuint);
+    }
+
+
+
+    public void TweenWithEaseInBack(Transform obj, Vector3 toPosition, float length, float delay)
+    {
+        obj.DOMove(toPosition, length)
+            .SetEase(Ease.InBack)
+            .SetDelay(delay);
+    }
+
+
+    public void TweenWithEaseInBack(Transform obj, Vector3 toPosition, float length, int nextPhase, float delay, bool last)
+    {
+        obj.DOMove(toPosition, length)
+            .SetEase(Ease.InBack)
+            .SetDelay(delay)
+            .OnComplete(() => {
+                gameManager.phase = nextPhase;
+                if (nextPhase == 2 && last)
+                {
+                    gameManager.BotMove();
+
+                }
+            });
     }
 }

@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
 
     private const float CARD_Z_OFFSET = -0.1f;
 
-    private const float CARD_GAP = 0.1f;
+    private const float CARD_GAP = 0.2f;
     public int handCount = 4;
     private int playerCount = 2;
 
@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
     public GameObject defaultSprite;
     private SpriteRenderer defaultRenderer;
     private float cardWidth;
+    private float cardHeight;
 
 
     private int middleCount = 0;
@@ -72,20 +73,11 @@ public class GameManager : MonoBehaviour
         SetHandPositions();
         SetDeckPosition();
         CalculateCardPositions(handCount);
-        //DealMiddle();
-        //DealNewHands();
         StartCoroutine(DealFirstHands());
         playerScript.lastCardZ = cardZ_Offset;
 
     }
 
-
-
-    void Update()
-    {
-        BotMove();
-        //DealNewHands();
-    }
 
     private void SetHandPositions()
     {
@@ -130,9 +122,9 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator DealFirstHands()
     {
-        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1);
+        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, CARD_GAP);
         yield return new WaitForSeconds(handCount * DEAL_TIME);
-        deckManager.CreateHand(cardPrefab, handCount, botHand, -1);
+        deckManager.CreateHand(cardPrefab, handCount, botHand, -1, CARD_GAP);
         yield return new WaitForSeconds(handCount * DEAL_TIME);
         DealMiddle();
         yield return new WaitForSeconds(handCount * DEAL_TIME);
@@ -142,9 +134,9 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator DealHands()
     {
-        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1);
+        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, CARD_GAP);
         yield return new WaitForSeconds(handCount * DEAL_TIME);
-        deckManager.CreateHand(cardPrefab, handCount, botHand, -1);
+        deckManager.CreateHand(cardPrefab, handCount, botHand, -1, CARD_GAP);
         yield return new WaitForSeconds(handCount * DEAL_TIME);
         ChangePhase(1);
 
@@ -163,7 +155,18 @@ public class GameManager : MonoBehaviour
         Vector3 toPos = middlePos.position + z_Offset + randomize;
         selected.transform.position += z_Offset;
         nextPhase = ControlRound(nextPhase);
-        tweenManager.CardPlayTween(selected, toPos,length, nextPhase);
+        bool match = CheckMatchings(player);
+        if (match)
+        {
+            toPos.y += -player * cardHeight;
+            tweenManager.TweenToPoint(selected, toPos, length);
+
+        }
+        else
+        {
+            tweenManager.CardPlayTween(selected, toPos, length, nextPhase);
+
+        }
         cardZ_Offset += CARD_Z_OFFSET;
         playerScript.lastCardZ = cardZ_Offset;
         selected.transform.SetParent(middlePos);
@@ -171,7 +174,7 @@ public class GameManager : MonoBehaviour
         middleCountText.text = middleCount.ToString();
         selectedDisplay.player = 0;
         selected.transform.tag = "Middle";
-        HandleMatches(player);
+        HandleMatches(player, match);
 
         
     }
@@ -192,7 +195,7 @@ public class GameManager : MonoBehaviour
     {
         if (player == 1)
         {
-            playerScript.RepositionCards(cardWidth);
+            playerScript.RepositionCards(cardWidth, CARD_GAP);
         }
     }
 
@@ -219,7 +222,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void BotMove()
+    public void BotMove()
     {
         if (phase == 2)
         {
@@ -244,6 +247,7 @@ public class GameManager : MonoBehaviour
         defaultRenderer = defaultSprite.GetComponent<SpriteRenderer>();
 
         cardWidth = defaultRenderer.bounds.size.x;
+        cardHeight = defaultRenderer.bounds.size.y;
         deckManager.leftBottom = leftBottom;
         deckManager.cardOffset = cardWidth;
     }
@@ -255,7 +259,7 @@ public class GameManager : MonoBehaviour
             if (lastPlayedDisplay.card.number == selectedDisplay.card.number)
             {
                 //A kind of pisti
-                if (middleCount == 2)
+                if (middleCount == 1)
                 {
                     // Big pisti
                     if (player == 1)
@@ -276,9 +280,9 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    private void HandleMatches(int player)
+    private void HandleMatches(int player, bool match)
     {
-        if (CheckMatchings(player))
+        if (match)
         {
             CardDisplay[] middleCards = new CardDisplay[middleCount];
             GameObject[] middleObjects = new GameObject[middleCount];

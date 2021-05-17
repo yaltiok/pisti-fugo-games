@@ -9,9 +9,8 @@ public class ScriptableCard : ScriptableObject
     public int number;
     public int value;
     public Sprite suit;
-    public Sprite numberSprite;
     public Sprite cardBack;
-    public Sprite empty;
     public int orientation = 0;
+    public bool isRed;
 
 }

@@ -16,7 +16,6 @@ MonoBehaviour:
   number: 11
   value: 1
   suit: {fileID: 21300000, guid: 0635f490f33e3e3478f8410c00655b11, type: 3}
-  numberSprite: {fileID: 21300000, guid: 6d676758a23374d439bbbb8ec8bacc8a, type: 3}
-  cardBack: {fileID: 21300000, guid: 8d9fc8ecc7ba3574b8e1964820dce405, type: 3}
-  empty: {fileID: 0}
+  cardBack: {fileID: 21300000, guid: 9fc879db88553714cbe0a0cf316ed82b, type: 3}
   orientation: 1
+  isRed: 1

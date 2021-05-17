@@ -80,11 +80,17 @@ public class Bot : MonoBehaviour
 
     public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
     {
+        bool last = false;
+
         for (int i = 0; i < objects.Length; i++)
         {
             stash.Add(objects[i]);
-            objects[i].transform.parent = stashObject.transform;
-            cardDisplays[i].TweenWithEaseInBack(stashPos, 1f);
+            objects[i].transform.SetParent(stashObject.transform);
+            if (i == objects.Length - 1)
+            {
+                last = true;
+            }
+            cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 1, .5f + i * .02f, last);
             
         }
     }
