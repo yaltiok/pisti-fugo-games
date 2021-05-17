@@ -60,8 +60,8 @@ public class DeckManager : MonoBehaviour
         for (int i = 0; i < arr.Length; i++)
         {
             ScriptableCard card = arr[i];
-
-            Vector3 cardPos = hand.transform.position + new Vector3((cardOffset * (i + .5f)) + leftBottom.x, .5f * botFactor);
+            float offsetFactor = 0.1f * 0.5f; //Make this work!!
+            Vector3 cardPos = hand.transform.position + new Vector3(cardOffset * (i - 1.5f), .5f * botFactor);
             GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset,0,0), Quaternion.identity, hand.transform);
 
             card.orientation = botFactor;

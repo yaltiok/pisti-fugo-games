@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour
 
 
     private const float CARD_Z_OFFSET = -0.1f;
+
+    private const float CARD_GAP = 0.1f;
     public int handCount = 4;
     private int playerCount = 2;
 
@@ -28,6 +30,10 @@ public class GameManager : MonoBehaviour
 
     public Transform middlePos;
     public GameObject cardPrefab;
+    public GameObject defaultSprite;
+    private SpriteRenderer defaultRenderer;
+    private float cardWidth;
+
 
     private int middleCount = 0;
 
@@ -186,7 +192,7 @@ public class GameManager : MonoBehaviour
     {
         if (player == 1)
         {
-            playerScript.RepositionCards(screenWidthInWorld);
+            playerScript.RepositionCards(cardWidth);
         }
     }
 
@@ -235,8 +241,11 @@ public class GameManager : MonoBehaviour
 
     private void CalculateCardPositions(int cardCount)
     {
+        defaultRenderer = defaultSprite.GetComponent<SpriteRenderer>();
+
+        cardWidth = defaultRenderer.bounds.size.x;
         deckManager.leftBottom = leftBottom;
-        deckManager.cardOffset = screenWidthInWorld / cardCount;
+        deckManager.cardOffset = cardWidth;
     }
 
     private bool CheckMatchings(int player)

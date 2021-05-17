@@ -379,6 +379,7 @@ MonoBehaviour:
   infoText: {fileID: 1404219320}
   stashObject: {fileID: 584790889}
   gameManager: {fileID: 181335629}
+  screenWidth: 0
   turnPoint: 0
   totalPoint: 0
   stashCount: 0
@@ -436,6 +437,8 @@ MonoBehaviour:
   botScript: {fileID: 97493195}
   middlePos: {fileID: 1339531506}
   cardPrefab: {fileID: 5999321088057076238, guid: 730e8b41b97dbd44ea590c2c61881aef,
+    type: 3}
+  defaultSprite: {fileID: 165806510631823972, guid: db2a9b216b372744d9c5bc450875d644,
     type: 3}
   selected: {fileID: 0}
   selectedDisplay: {fileID: 0}

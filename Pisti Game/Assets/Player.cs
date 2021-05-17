@@ -195,16 +195,29 @@ public class Player : MonoBehaviour
     }
 
 
-    public void RepositionCards(float screenWidth)
+    public void RepositionCards(float cardWidth)
     {
-        float a = screenWidth / cardDisplays.Count;
-        for (int i = 0; i < cardDisplays.Count ; i++)
+        if (cardObjects.Count%2 == 0)
         {
-            CardDisplay temp = (CardDisplay)cardDisplays[i];
-            float x = transform.position.x + a * (i + .5f) - screenWidth / 2;
+            for (int i = 0; i < cardDisplays.Count; i++)
+            {
+                CardDisplay temp = (CardDisplay)cardDisplays[i];
+                float x = transform.position.x + cardWidth * (i - .5f); // HAND POSITION ÜZERİNE EKLE
 
-            temp.TweenX(x, .2f);
+                temp.TweenX(x, .2f);
+            }
         }
+        else
+        {
+            for (int i = 0; i < cardDisplays.Count; i++)
+            {
+                CardDisplay temp = (CardDisplay)cardDisplays[i];
+                float x = transform.position.x + cardWidth * (i - 1f);
+
+                temp.TweenX(x, .2f);
+            }
+        }
+        
     }
 
     private void SwapCardPlaces()
