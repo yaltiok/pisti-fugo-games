@@ -4,14 +4,22 @@ using UnityEngine;
 
 public class HoverOver : MonoBehaviour
 {
+    public SpriteRenderer cardFaceSpriteRenderer;
+    private Material mat;
+
+    private void Start()
+    {
+        mat = cardFaceSpriteRenderer.material;
+    }
+
     private void OnMouseEnter()
     {
-        //Debug.Log(this.gameObject.name);
-        // Highlight code will go here
+        mat.SetFloat("GlowFactor", 1);
     }
 
     private void OnMouseExit()
     {
-        //Debug.Log(this.gameObject.name);
+        mat.SetFloat("GlowFactor", 0);
+
     }
 }

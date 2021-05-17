@@ -101,24 +101,24 @@ public class Player : MonoBehaviour
         }
         else if (Input.GetMouseButtonUp(0))
         {
+            if (!holdingCard)
+            {
+                return;
+            }
             if (gameManager.phase == 1)
             {
-                if (holdingCard)
+                if (selected.transform.localPosition.y > 2f && selectedDisplay.player == 1)
                 {
-                    if (selected.transform.localPosition.y > 2f && selectedDisplay.player == 1)
-                    {
-                        // Play Card
-                        cardObjects.RemoveAt(holdIndex);
-                        cardDisplays.RemoveAt(holdIndex);
-                        gameManager.CardPlayed(1f, 2, 1);
-                        holdIndex = -1;
-                    }
-                    else
-                    {
-                        selected.transform.position = selectedDisplay.positionInHand;
-                    }
+                    // Play Card
+                    cardObjects.RemoveAt(holdIndex);
+                    cardDisplays.RemoveAt(holdIndex);
+                    gameManager.CardPlayed(1f, 2, 1);
+                    holdIndex = -1;
                 }
-                
+                else
+                {
+                    selected.transform.position = selectedDisplay.positionInHand;
+                }
             }
             else
             {
@@ -128,6 +128,7 @@ public class Player : MonoBehaviour
             selected = null;
             selectedDisplay = null;
             areaHighlight.ResetHighlight();
+            
         }
         else if (holdingCard && gameManager.phase != 0 && selectedDisplay.player == 1)
         {
