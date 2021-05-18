@@ -49,7 +49,7 @@ public class Bot : MonoBehaviour
         
     }
 
-    public void AddToStash(GameObject[] objects, CardDisplay[] displays)
+    public void AddToStash(GameObject[] objects, CardDisplay[] displays, int nextPhase, float delay)
     {
         for (int i = 0; i < displays.Length; i++)
         {
@@ -58,14 +58,8 @@ public class Bot : MonoBehaviour
         }
 
         UpdateInfoText();
-        MoveToStash(objects, displays);
+        MoveToStash(objects, displays,nextPhase, delay);
 
-    }
-
-    private void ResetValues()
-    {
-        turnPoint = 0;
-        stashCount = 0;
     }
 
 
@@ -73,31 +67,40 @@ public class Bot : MonoBehaviour
     {
         string currentText = infoText.text;
         string[] arr = currentText.Split(char.Parse("|"));
-        string temp = arr[0] + " | " + turnPoint + " | " + totalPoint;
+        string temp = arr[0] + "| " + turnPoint + " | " + totalPoint;
         infoText.text = temp;
     }
 
 
-    public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
+    public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays, int nextPhase, float delay)
     {
         bool last = false;
-
-        for (int i = 0; i < objects.Length; i++)
+        for (int i = objects.Length - 1; i >= 0; i--)
         {
             stash.Add(objects[i]);
             objects[i].transform.SetParent(stashObject.transform);
-            if (i == objects.Length - 1)
+            if (i == 0)
             {
                 last = true;
             }
-            cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 1, .5f + i * .02f, last);
-            
+            cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, nextPhase, delay + i * .06f, last);
+
         }
     }
 
     public void SetStashPos()
     {
         stashPos = stashObject.transform.position;
+    }
+
+    public void TurnEnd()
+    {
+        totalPoint += turnPoint;
+        turnPoint = 0;
+        stashCount = 0;
+        stash = new ArrayList();
+        UpdateInfoText();
+
     }
 
 

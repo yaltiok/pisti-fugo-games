@@ -156,7 +156,7 @@ public class DeckManager : MonoBehaviour
     }
 
 
-    private void CreateNewDeck()
+    public void CreateNewDeck()
     {
         currentDeck = new ArrayList();
         for (int i = 0; i < cards.Length; i++)
@@ -164,6 +164,8 @@ public class DeckManager : MonoBehaviour
             currentDeck.Add(cards[i]);
         }
         deckCount = currentDeck.Count;
+        deck.SetActive(true);
+        deckTextElement.text = deckCount.ToString();
         ShuffleDeck();
     }
     private void ShuffleDeck()

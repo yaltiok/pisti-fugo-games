@@ -16,6 +16,10 @@ public class TweenManager : MonoBehaviour
                 {
                     gameManager.BotMove();
                 }
+                else if (nextPhase == 0)
+                {
+                    gameManager.DealNewHands();
+                }
             });
     }
 
@@ -54,12 +58,21 @@ public class TweenManager : MonoBehaviour
             .SetEase(Ease.InBack)
             .SetDelay(delay)
             .OnComplete(() => {
-                gameManager.phase = nextPhase;
-                if (nextPhase == 2 && last)
+                if (last)
                 {
-                    gameManager.BotMove();
+                    gameManager.phase = nextPhase;
+                    if (nextPhase == 2)
+                    {
+                        gameManager.BotMove();
 
+                    }
+                    else if (nextPhase == 0)
+                    {
+                        gameManager.DealNewHands();
+                    }
                 }
+                Destroy(obj.gameObject, 5f);
+                
             });
     }
 }

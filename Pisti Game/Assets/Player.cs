@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
         HoldingCard();
     }
 
-    public void AddToStash(GameObject[] objects,CardDisplay[] displays)
+    public void AddToStash(GameObject[] objects,CardDisplay[] displays, int nextPhase, float delay)
     {
         for (int i = 0; i < displays.Length; i++)
         {
@@ -66,7 +66,7 @@ public class Player : MonoBehaviour
             stashCount++;
         }
         UpdateInfoText();
-        MoveToStash(objects, displays);
+        MoveToStash(objects, displays,nextPhase, delay);
     }
 
     private void ResetValues()
@@ -182,11 +182,11 @@ public class Player : MonoBehaviour
     {
         string currentText = infoText.text;
         string[] arr = currentText.Split(char.Parse("|"));
-        string temp = arr[0] + " | " + turnPoint + " | " + totalPoint;
+        string temp = arr[0] + "| " + turnPoint + " | " + totalPoint;
         infoText.text = temp;
     }
 
-    //public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
+    //public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays, float delay)
     //{
     //    bool last = false;
     //    for (int i = 0; i < objects.Length; i++)
@@ -197,23 +197,25 @@ public class Player : MonoBehaviour
     //        {
     //            last = true;
     //        }
-    //        cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 2, .5f + i * .02f, last);
+    //        cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 2, delay + i * .02f, last);
 
     //    }
     //}
 
-    public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays)
+    public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays,int nextPhase, float delay)
     {
         bool last = false;
+        Debug.Log(objects.Length);
         for (int i = objects.Length - 1; i >= 0; i--)
         {
             stash.Add(objects[i]);
             objects[i].transform.SetParent(stashObject.transform);
+
             if (i == 0)
             {
                 last = true;
             }
-            cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 2, .5f + i * .06f, last);
+            cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, nextPhase, delay + i * .06f, last);
 
         }
     }
@@ -240,6 +242,15 @@ public class Player : MonoBehaviour
             temp.TweenX(x, .2f);
         }
          
+    }
+
+    public void TurnEnd()
+    {
+        totalPoint += turnPoint;
+        turnPoint = 0;
+        stashCount = 0;
+        stash = new ArrayList();
+        UpdateInfoText();
     }
 
     private void SwapCardPlaces()

@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections;
-using System;
-
+using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
 
+
     private const float DEAL_TIME = 0.2f;
 
-
+    private Image img;
     private const float CARD_Z_OFFSET = -0.1f;
 
     private const float CARD_GAP = 0.2f;
@@ -106,22 +106,41 @@ public class GameManager : MonoBehaviour
         deckManager.deckPos = deckPos;
     }
 
-    private void DealNewHands()
+    public void DealNewHands()
     {
 
-        if (!CheckGameEnd())
+        
+
+        if (!CheckRoundEnd())
         {
             if (phase == 0)
             {
                 StartCoroutine(DealHands());
             }
-        }else if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
+        }
+        else if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
         {
             // Game Over. Announce Winner
+            string winner = "";
+            if (playerScript.totalPoint > botScript.totalPoint)
+            {
+                winner = "player";
+            }
+            else
+            {
+                winner = "bot";
+            }
+            Debug.Log("Round winner is: " + winner);
         }
         else
         {
             //New Round
+            //Create New Deck
+            deckManager.CreateNewDeck();
+            
+            playerScript.TurnEnd();
+            botScript.TurnEnd();
+            StartCoroutine(DealFirstHands());
         }
     }
     
@@ -182,7 +201,8 @@ public class GameManager : MonoBehaviour
         middleCountText.text = middleCount.ToString();
         selectedDisplay.player = 0;
         selected.transform.tag = "Middle";
-        HandleMatches(player, match);
+        HandleMatches(player, match, nextPhase);
+        
 
         
     }
@@ -210,7 +230,6 @@ public class GameManager : MonoBehaviour
         selected.transform.position += z_Offset;
         if (match)
         {
-
 
             toPos.y += -player * cardHeight;
             tweenManager.TweenToPoint(selected, toPos, length);
@@ -240,10 +259,8 @@ public class GameManager : MonoBehaviour
         roundControl++;
         if (roundControl >= roundMax)
         {
-            phase = 0;
-            DealNewHands();
             roundControl = 0;
-            return 1;
+            return 0;
         }
         return nextPhase;
     }
@@ -252,18 +269,11 @@ public class GameManager : MonoBehaviour
     private void ChangePhase(int i)
     {
         phase = i;
-        if (i == 0)
-        {
-            DealNewHands();
-        }
     }
 
     public void BotMove()
     {
-        if (phase == 2)
-        {
-            botScript.PlayCard(lastPlayedDisplay);
-        }
+         botScript.PlayCard(lastPlayedDisplay);
     }
 
 
@@ -316,11 +326,11 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    private void HandleMatches(int player, bool match)
+    private void HandleMatches(int player, bool match, int nextPhase)
     {
         if (match)
         {
-            MoveCardsToStash(player);
+            MoveCardsToStash(player,nextPhase, .5f);
         }
         else
         {
@@ -329,7 +339,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void MoveCardsToStash(int player)
+    private void MoveCardsToStash(int player, int nextPhase, float delay)
     {
         CardDisplay[] middleCards = new CardDisplay[middleCount];
         GameObject[] middleObjects = new GameObject[middleCount];
@@ -340,11 +350,11 @@ public class GameManager : MonoBehaviour
         }
         if (player == 1)
         {
-            playerScript.AddToStash(middleObjects, middleCards);
+            playerScript.AddToStash(middleObjects, middleCards, nextPhase, delay);
         }
         else
         {
-            botScript.AddToStash(middleObjects, middleCards);
+            botScript.AddToStash(middleObjects, middleCards,nextPhase, delay);
         }
         middleCount = 0;
         middleCountText.text = middleCount.ToString();
@@ -356,7 +366,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    private bool CheckGameEnd()
+    private bool CheckRoundEnd()
     {
         if (deckManager.currentDeck.Count <= 0)
         {
@@ -366,25 +376,16 @@ public class GameManager : MonoBehaviour
             {
                 playerScript.turnPoint += 3;
                 playerScript.UpdateInfoText();
-                MoveCardsToStash(1);
+                MoveCardsToStash(1,4, .7f);
             }
             else if (playerStashCount < botStashCount)
             {
                 botScript.turnPoint += 3;
                 botScript.UpdateInfoText();
-                MoveCardsToStash(-1);
+                MoveCardsToStash(-1,4, .7f);
 
             }
-            string winner = "";
-            if (playerScript.turnPoint > botScript.turnPoint)
-            {
-                winner = "player";
-            }
-            else
-            {
-                winner = "bot";
-            }
-            Debug.Log("Round winner is: " + winner);
+            
             return true;
         }
         return false;
