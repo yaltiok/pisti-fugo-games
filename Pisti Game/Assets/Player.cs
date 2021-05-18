@@ -205,7 +205,6 @@ public class Player : MonoBehaviour
     public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays,int nextPhase, float delay)
     {
         bool last = false;
-        Debug.Log(objects.Length);
         for (int i = objects.Length - 1; i >= 0; i--)
         {
             stash.Add(objects[i]);

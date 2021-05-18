@@ -61,7 +61,7 @@ public class DeckManager : MonoBehaviour
         {
             ScriptableCard card = arr[i];
             Vector3 cardPos = hand.transform.position + new Vector3((-count / 2f + .5f + i) * cardOffset + (i - ((count - 1) / 2f)) * gap, .5f * botFactor);
-            GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset,0,0), Quaternion.identity, hand.transform);
+            GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(0, 0, .1f), Quaternion.Euler(new Vector3(0, 0, 90)), hand.transform);
 
             card.orientation = botFactor;
 
@@ -84,7 +84,8 @@ public class DeckManager : MonoBehaviour
     {
         for (int i = 0; i < arr.Length; i++)
         {
-            arr[i].TweenToPosition(arr[i].positionInHand);
+
+            arr[i].CardDealTween(arr[i].positionInHand, 1f);
             deckCount--;
             deckTextElement.text = deckCount.ToString();
             yield return new WaitForSeconds(DEAL_TIME);
@@ -107,7 +108,7 @@ public class DeckManager : MonoBehaviour
             ScriptableCard card = arr[i];
 
             Vector3 cardPos = hand.position + new Vector3((cardOffset / 4) * -i + cardOffset / 2, 0f, 0.1f * (count - i));
-            GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(cardOffset, 0, 0), Quaternion.identity, hand.transform);
+            GameObject cardObject = Instantiate(cardPrefab, deckPos + new Vector3(0, 0, .1f), Quaternion.Euler(new Vector3(0, 0, 90)), hand.transform);
 
             CardDisplay display = cardObject.gameObject.GetComponent<CardDisplay>();
             display.positionInHand = cardPos;
@@ -138,7 +139,8 @@ public class DeckManager : MonoBehaviour
     {
         for (int i = 0; i < arr.Length; i++)
         {
-            arr[i].TweenToPosition(arr[i].positionInHand);
+            arr[i].CardDealTween(arr[i].positionInHand, 1f);
+
             deckCount--;
             deckTextElement.text = deckCount.ToString();
             yield return new WaitForSeconds(DEAL_TIME);

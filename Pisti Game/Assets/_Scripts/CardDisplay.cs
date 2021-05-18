@@ -66,6 +66,14 @@ public class CardDisplay : MonoBehaviour
         tweenManager.TweenWithEaseInBack(obj, toPosition, length, delay);
     }
 
+    public void CardDealTween(Vector3 toPos, float length)
+    {
+        Sequence sq = DOTween.Sequence();
+        sq.Append(transform.DOMove(toPos, length))
+          .Insert(0, transform.DORotate(new Vector3(0, 0, 0), sq.Duration()));
+        sq.Play();
+    }
+
     public void TweenX(float newX, float length)
     {
         transform.DOMoveX(newX, length)

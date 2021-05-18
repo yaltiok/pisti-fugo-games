@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using TMPro;
 using UnityEngine;
 using DG.Tweening;
 
@@ -42,7 +41,20 @@ public class TweenManager : MonoBehaviour
             .SetEase(Ease.OutQuint);
     }
 
-
+    public void TextTween(TMP_Text textElement, float endValue, float length)
+    {
+        Sequence textSequence = DOTween.Sequence();
+        textSequence.Append(textElement.DOFade(endValue, length))
+          .AppendInterval(length)
+          .Append(textElement.DOFade(0, length*2))
+          //.Append(textElement.rectTransform.DOMoveX(-7f, length))
+          .Insert(0, textElement.rectTransform.DOScale(new Vector3(7, 7, 7), textSequence.Duration()/2f))
+          .OnComplete(() => {
+              textElement.rectTransform.localScale = new Vector3(1,1,1);
+              gameManager.asd();
+          });
+        textSequence.Play();
+    }
 
     public void TweenWithEaseInBack(Transform obj, Vector3 toPosition, float length, float delay)
     {

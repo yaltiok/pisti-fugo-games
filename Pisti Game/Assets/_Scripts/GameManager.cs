@@ -1,14 +1,12 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections;
-using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
 
 
     private const float DEAL_TIME = 0.2f;
 
-    private Image img;
     private const float CARD_Z_OFFSET = -0.1f;
 
     private const float CARD_GAP = 0.2f;
@@ -25,6 +23,7 @@ public class GameManager : MonoBehaviour
     public DeckManager deckManager;
     public TweenManager tweenManager;
     public TMP_Text middleCountText;
+    public TMP_Text roundText;
 
     public Player playerScript;
     public Bot botScript;
@@ -76,6 +75,7 @@ public class GameManager : MonoBehaviour
         CalculateCardPositions(handCount);
         StartCoroutine(DealFirstHands());
         playerScript.lastCardZ = cardZ_Offset;
+        
 
     }
 
@@ -84,6 +84,7 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             Debug.Log(phase);
+            tweenManager.TextTween(roundText,1f,1f);
         }
     }
 
@@ -108,19 +109,8 @@ public class GameManager : MonoBehaviour
 
     public void DealNewHands()
     {
-
-        
-
-        if (!CheckRoundEnd())
+        if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
         {
-            if (phase == 0)
-            {
-                StartCoroutine(DealHands());
-            }
-        }
-        else if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
-        {
-            // Game Over. Announce Winner
             string winner = "";
             if (playerScript.totalPoint > botScript.totalPoint)
             {
@@ -131,17 +121,35 @@ public class GameManager : MonoBehaviour
                 winner = "bot";
             }
             Debug.Log("Round winner is: " + winner);
+            return;
+        }
+        
+        if (!CheckRoundEnd())
+        {
+            if (phase == 0)
+            {
+                StartCoroutine(DealHands());
+            }
         }
         else
         {
-            //New Round
-            //Create New Deck
-            deckManager.CreateNewDeck();
-            
-            playerScript.TurnEnd();
-            botScript.TurnEnd();
-            StartCoroutine(DealFirstHands());
+            NewRound();
         }
+    }
+
+    private void NewRound()
+    {
+        deckManager.CreateNewDeck();
+        tweenManager.TextTween(roundText, 1f, 1f);
+        playerScript.TurnEnd();
+        botScript.TurnEnd();
+        firstCard = true;
+        
+    }
+    
+    public void asd()
+    {
+        StartCoroutine(DealFirstHands());
     }
     
     private void DealMiddle()
