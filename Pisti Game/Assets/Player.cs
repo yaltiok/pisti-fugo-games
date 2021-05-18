@@ -19,6 +19,8 @@ public class Player : MonoBehaviour
     private Vector3 stashPos;
     public float lastCardZ;
 
+    private float handAreaHeight;
+
 
     public ArrayList cardObjects = new ArrayList();
     public ArrayList cardDisplays = new ArrayList();
@@ -42,6 +44,7 @@ public class Player : MonoBehaviour
     {
         cam = Camera.main;
         camZ_Offset = -cam.transform.position.z;
+        handAreaHeight = areaHighlight.handAreaHeight;
     }
 
     // Update is called once per frame
@@ -109,7 +112,7 @@ public class Player : MonoBehaviour
             }
             if (gameManager.phase == 1)
             {
-                if (selected.transform.localPosition.y > 2f && selectedDisplay.player == 1)
+                if (selected.transform.localPosition.y > handAreaHeight - transform.position.y && selectedDisplay.player == 1)
                 {
                     // Play Card
                     cardObjects.RemoveAt(holdIndex);
@@ -145,7 +148,7 @@ public class Player : MonoBehaviour
         if (selected != null && holdingCard)
         {
             selected.transform.position = cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, camZ_Offset + lastCardZ));
-            if (selected.transform.localPosition.y > 2f)
+            if (selected.transform.localPosition.y > handAreaHeight - transform.position.y)
             {
                 areaHighlight.HighlightArea(0);
             }

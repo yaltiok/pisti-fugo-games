@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class GameManager : MonoBehaviour
 
     private const float CARD_GAP = 0.2f;
     public int handCount = 4;
+    public int pointToWin = 151;
     private int playerCount = 2;
 
     private int roundControl = 0;
@@ -22,7 +24,6 @@ public class GameManager : MonoBehaviour
     public GameObject botHand;
     public DeckManager deckManager;
     public TweenManager tweenManager;
-    public AreaHighlight areaHighlight;
     public TMP_Text middleCountText;
 
     public Player playerScript;
@@ -78,6 +79,14 @@ public class GameManager : MonoBehaviour
 
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Debug.Log(phase);
+        }
+    }
+
 
     private void SetHandPositions()
     {
@@ -95,7 +104,6 @@ public class GameManager : MonoBehaviour
     {
         Vector3 deckPos = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, cam.pixelHeight / 2, camZ_Offset));
         deckManager.deckPos = deckPos;
-        //deckPosition.position = deckPos;
     }
 
     private void DealNewHands()
@@ -107,6 +115,13 @@ public class GameManager : MonoBehaviour
             {
                 StartCoroutine(DealHands());
             }
+        }else if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
+        {
+            // Game Over. Announce Winner
+        }
+        else
+        {
+            //New Round
         }
     }
     
@@ -137,36 +152,29 @@ public class GameManager : MonoBehaviour
         deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, CARD_GAP);
         yield return new WaitForSeconds(handCount * DEAL_TIME);
         deckManager.CreateHand(cardPrefab, handCount, botHand, -1, CARD_GAP);
+        CheckDeckCount();
         yield return new WaitForSeconds(handCount * DEAL_TIME);
         ChangePhase(1);
 
     }
 
-
+    private void CheckDeckCount()
+    {
+        if (deckManager.currentDeck.Count <= 0)
+        {
+            deckManager.deck.SetActive(false);
+        }
+    }
 
     public void CardPlayed(float length, int nextPhase, int player)
     {
         RepositionHand(player);
         IsFirstCard();
-        
         ChangePhase(4);
-        Vector3 z_Offset = new Vector3(0, 0, cardZ_Offset);
-        Vector3 randomize = new Vector3(UnityEngine.Random.Range(-.25f, .25f), UnityEngine.Random.Range(-.25f, .25f),0);
-        Vector3 toPos = middlePos.position + z_Offset + randomize;
-        selected.transform.position += z_Offset;
+        
         nextPhase = ControlRound(nextPhase);
         bool match = CheckMatchings(player);
-        if (match)
-        {
-            toPos.y += -player * cardHeight;
-            tweenManager.TweenToPoint(selected, toPos, length);
-
-        }
-        else
-        {
-            tweenManager.CardPlayTween(selected, toPos, length, nextPhase);
-
-        }
+        SetTween(player, match, length, nextPhase);
         cardZ_Offset += CARD_Z_OFFSET;
         playerScript.lastCardZ = cardZ_Offset;
         selected.transform.SetParent(middlePos);
@@ -185,9 +193,33 @@ public class GameManager : MonoBehaviour
         {
             for (int i = 0; i < middlePos.childCount; i++)
             {
-                tweenManager.TweenToPoint(middlePos.GetChild(i).gameObject, middlePos.position, 0.5f);
+                GameObject obj = middlePos.GetChild(i).gameObject;
+                Vector3 offset = new Vector3(0,0, obj.transform.position.z);
+                Vector3 toPos = offset + middlePos.position;
+                tweenManager.TweenToPoint(obj, toPos, 0.5f);
             }
             firstCard = false;
+        }
+    }
+
+    private void SetTween(int player, bool match, float length, int nextPhase)
+    {
+        Vector3 z_Offset = new Vector3(0, 0, cardZ_Offset);
+        Vector3 randomize = new Vector3(UnityEngine.Random.Range(-.25f, .25f), UnityEngine.Random.Range(-.25f, .25f), 0);
+        Vector3 toPos = middlePos.position + z_Offset + randomize;
+        selected.transform.position += z_Offset;
+        if (match)
+        {
+
+
+            toPos.y += -player * cardHeight;
+            tweenManager.TweenToPoint(selected, toPos, length);
+
+        }
+        else
+        {
+            tweenManager.CardPlayTween(selected, toPos, length, nextPhase);
+
         }
     }
 
@@ -196,6 +228,10 @@ public class GameManager : MonoBehaviour
         if (player == 1)
         {
             playerScript.RepositionCards(cardWidth, CARD_GAP);
+        }
+        else
+        {
+            botScript.RepositionCards(cardWidth, CARD_GAP);
         }
     }
 
@@ -284,28 +320,7 @@ public class GameManager : MonoBehaviour
     {
         if (match)
         {
-            CardDisplay[] middleCards = new CardDisplay[middleCount];
-            GameObject[] middleObjects = new GameObject[middleCount];
-            for (int i = 0; i < middleCount; i++)
-            {
-                middleObjects[i] = middlePos.GetChild(i).gameObject;
-                middleCards[i] = middleObjects[i].GetComponent<CardDisplay>();
-            }
-            if (player == 1)
-            {
-                playerScript.AddToStash(middleObjects, middleCards);
-            }
-            else
-            {
-                botScript.AddToStash(middleObjects, middleCards);
-            }
-            middleCount = 0;
-            middleCountText.text = middleCount.ToString();
-            cardZ_Offset = -1;
-            selected = null;
-            lastPlayed = null;
-            selectedDisplay = null;
-            lastPlayedDisplay = null;
+            MoveCardsToStash(player);
         }
         else
         {
@@ -314,23 +329,51 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void MoveCardsToStash(int player)
+    {
+        CardDisplay[] middleCards = new CardDisplay[middleCount];
+        GameObject[] middleObjects = new GameObject[middleCount];
+        for (int i = 0; i < middleCount; i++)
+        {
+            middleObjects[i] = middlePos.GetChild(i).gameObject;
+            middleCards[i] = middleObjects[i].GetComponent<CardDisplay>();
+        }
+        if (player == 1)
+        {
+            playerScript.AddToStash(middleObjects, middleCards);
+        }
+        else
+        {
+            botScript.AddToStash(middleObjects, middleCards);
+        }
+        middleCount = 0;
+        middleCountText.text = middleCount.ToString();
+        cardZ_Offset = -1;
+        selected = null;
+        lastPlayed = null;
+        selectedDisplay = null;
+        lastPlayedDisplay = null;
+    }
+
 
     private bool CheckGameEnd()
     {
         if (deckManager.currentDeck.Count <= 0)
         {
-
-            int a = playerScript.stashCount;
-            int b = botScript.stashCount;
-            if (a > b)
+            int playerStashCount = playerScript.stashCount;
+            int botStashCount = botScript.stashCount;
+            if (playerStashCount >= botStashCount)
             {
                 playerScript.turnPoint += 3;
                 playerScript.UpdateInfoText();
+                MoveCardsToStash(1);
             }
-            else if (a < b)
+            else if (playerStashCount < botStashCount)
             {
                 botScript.turnPoint += 3;
                 botScript.UpdateInfoText();
+                MoveCardsToStash(-1);
+
             }
             string winner = "";
             if (playerScript.turnPoint > botScript.turnPoint)
@@ -341,11 +384,9 @@ public class GameManager : MonoBehaviour
             {
                 winner = "bot";
             }
-            Debug.Log("Game Over! Winner is: " + winner);
+            Debug.Log("Round winner is: " + winner);
             return true;
         }
         return false;
     }
-
-
 }

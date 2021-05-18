@@ -151,8 +151,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 20553783}
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.9, z: 0.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 2, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 614000874}
   m_RootOrder: 0
@@ -431,7 +431,6 @@ MonoBehaviour:
   botHand: {fileID: 97493193}
   deckManager: {fileID: 1394980094}
   tweenManager: {fileID: 2000029119}
-  areaHighlight: {fileID: 614000876}
   middleCountText: {fileID: 1250069751}
   playerScript: {fileID: 1458735631}
   botScript: {fileID: 97493195}
@@ -877,6 +876,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alphaValue: 30
+  handAreaHeight: 0
 --- !u!1 &626620482
 GameObject:
   m_ObjectHideFlags: 0
@@ -2382,8 +2382,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1976968805}
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -9.2, z: 0.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 2, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 614000874}
   m_RootOrder: 1

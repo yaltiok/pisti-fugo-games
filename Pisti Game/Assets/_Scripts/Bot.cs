@@ -103,18 +103,12 @@ public class Bot : MonoBehaviour
 
     private void Move(int i)
     {
-        //Debug.Log(cardDisplays.Count +  " " + i);
-        
         gameManager.selected = (GameObject)cardObjects[i];
         gameManager.selectedDisplay = (CardDisplay)cardDisplays[i];
         gameManager.selectedDisplay.SwitchOrientation();
         cardObjects.RemoveAt(i);
         cardDisplays.RemoveAt(i);
         gameManager.CardPlayed(.5f, 1, -1);
-        if (cardObjects.Count < 4)
-        {
-            RepositionCards();
-        }
     }
 
     private void RandomMove()
@@ -123,15 +117,16 @@ public class Bot : MonoBehaviour
         Move(a);
     }
 
-    public void RepositionCards()
+    public void RepositionCards(float cardWidth, float gap)
     {
-        float a = screenWidth / cardDisplays.Count;
+        float a = cardObjects.Count;
         for (int i = 0; i < cardDisplays.Count; i++)
         {
             CardDisplay temp = (CardDisplay)cardDisplays[i];
-            float x = transform.position.x + a * (i + .5f) - screenWidth / 2;
+            float x = transform.position.x + (-a / 2f + .5f + i) * cardWidth + (i - ((a - 1) / 2f)) * gap;
 
             temp.TweenX(x, .2f);
         }
+
     }
 }
