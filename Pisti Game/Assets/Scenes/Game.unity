@@ -427,7 +427,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handCount: 4
-  pointToWin: 30
+  pointToWin: 50
   playerHand: {fileID: 1458735629}
   botHand: {fileID: 97493193}
   deckManager: {fileID: 1394980094}

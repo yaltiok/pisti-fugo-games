@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour
     private int middleCount = 0;
 
     private bool firstRound = true;
+    private bool roundEnd = false;
 
 
 
@@ -87,15 +88,6 @@ public class GameManager : MonoBehaviour
 
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Debug.Log(phase);
-            tweenManager.TextTween(roundText,1f,1f);
-        }
-    }
-
 
     private void SetHandPositions()
     {
@@ -123,7 +115,7 @@ public class GameManager : MonoBehaviour
         {
             if (phase == 0)
             {
-                StartCoroutine(DealHands());
+                StartDeal();
             }
         }
         else
@@ -154,15 +146,16 @@ public class GameManager : MonoBehaviour
         
         firstCard = true;
         firstRound = true;
+        roundEnd = false;
         
     }
     
     
     private void DealMiddle()
     {
-
         lastPlayed = deckManager.CreateMiddleStack(cardPrefab, handCount, middlePos);
         lastPlayedDisplay = lastPlayed.GetComponent<CardDisplay>();
+        InformBot();
         middleCount = 4;
         middleCountText.text = middleCount.ToString();
         firstRound = false;
@@ -180,10 +173,11 @@ public class GameManager : MonoBehaviour
         {
             DealMiddle();
             yield return new WaitForSeconds(handCount * DEAL_TIME * DEAL_FACTOR);
-
         }
         CheckDeckCount();
+        botScript.NewHand(deckManager.currentDeck.Count + playerScript.cardObjects.Count);
         ChangePhase(1);
+        
     }
 
     private bool CheckGameEnd()
@@ -292,6 +286,13 @@ public class GameManager : MonoBehaviour
         return nextPhase;
     }
 
+    private void InformBot()
+    {
+        if (lastPlayedDisplay != null && !roundEnd)
+        {
+            botScript.InformBot(deckManager.currentDeck.Count + playerScript.cardObjects.Count, lastPlayedDisplay.card.number);
+        }
+    }
 
     private void ChangePhase(int i)
     {
@@ -369,6 +370,11 @@ public class GameManager : MonoBehaviour
         {
             lastPlayed = selected;
             lastPlayedDisplay = selectedDisplay;
+            if (player == 1)
+            {
+                InformBot();
+            }
+
         }
     }
 
@@ -376,6 +382,8 @@ public class GameManager : MonoBehaviour
     {
         CardDisplay[] middleCards = new CardDisplay[middleCount];
         GameObject[] middleObjects = new GameObject[middleCount];
+        lastPlayed = selected;
+        lastPlayedDisplay = selectedDisplay;
         for (int i = 0; i < middleCount; i++)
         {
             middleObjects[i] = middlePos.GetChild(i).gameObject;
@@ -384,6 +392,11 @@ public class GameManager : MonoBehaviour
         if (player == 1)
         {
             playerScript.AddToStash(middleObjects, middleCards, nextPhase, delay);
+            //if (!roundEnd)
+            //{
+            //    InformBot();
+            //}
+            InformBot();
         }
         else
         {
@@ -403,6 +416,7 @@ public class GameManager : MonoBehaviour
     {
         if (deckManager.currentDeck.Count <= 0)
         {
+            roundEnd = true;
             int playerStashCount = playerScript.stashCount;
             int botStashCount = botScript.stashCount;
             if (playerStashCount >= botStashCount)

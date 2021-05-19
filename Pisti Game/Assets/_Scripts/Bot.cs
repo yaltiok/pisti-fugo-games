@@ -1,9 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
 public class Bot : MonoBehaviour
 {
+
+    private const int CLOSED_CARD_COUNT = 3;
 
     public TMP_Text infoText;
 
@@ -15,8 +18,9 @@ public class Bot : MonoBehaviour
     public GameManager gameManager;
     private Vector3 stashPos;
     public float screenWidth;
+    private int deckCount;
 
-
+    private int[] cardCounts = new int[13];
 
     [HideInInspector]
     public int turnPoint = 0;
@@ -25,6 +29,22 @@ public class Bot : MonoBehaviour
     [HideInInspector]
     public int stashCount = 0;
 
+
+
+    private void Start()
+    {
+        InitCardCounts();
+    }
+
+    private void InitCardCounts()
+    {
+        for (int i = 0; i < cardCounts.Length; i++)
+        {
+            cardCounts[i] = 4;
+        }
+
+
+    }
 
     public void PlayCard(CardDisplay lastPlayedDisplay, int midCount, int midPoint)
     {
@@ -46,16 +66,39 @@ public class Bot : MonoBehaviour
             //If there are more than 4 cards on table and if bot has Jack, play Jack.
             if ((midCount >= 5 || midPoint > 1) && jackIdx > 0)
             {
-                Debug.Log("Playing Jack because : " + midPoint + " " + midCount);
-
                 Move(jackIdx);
                 return;
             }
 
         }
+        Move(GetLowestProbability());
+    }
 
-        RandomMove();
-        
+    private int GetLowestProbability()
+    {
+        int toReturn = -1;
+        float lowest = 1f;
+        for (int i = 0; i < cardDisplays.Count; i++)
+        {
+            CardDisplay display = (CardDisplay)cardDisplays[i];
+
+            float tempProb = ((float)cardCounts[display.card.number - 1] / (float)(deckCount + CLOSED_CARD_COUNT)) * ((float)display.card.value + 1f);
+            tempProb = Mathf.Clamp01(tempProb);
+            if (tempProb <= lowest)
+            {
+                lowest = tempProb;
+                toReturn = i;
+            }
+            
+            
+        }
+        return toReturn;
+    }
+
+    public void InformBot(int remaining, int lastPlayedNumber)
+    {
+        deckCount = remaining;
+        cardCounts[lastPlayedNumber - 1] -= 1;
     }
 
     public void AddToStash(GameObject[] objects, CardDisplay[] displays, int nextPhase, float delay)
@@ -97,6 +140,15 @@ public class Bot : MonoBehaviour
         }
     }
 
+    public void NewHand(int remaining)
+    {
+        for (int i = 0; i < cardDisplays.Count; i++)
+        {
+            CardDisplay display = (CardDisplay)cardDisplays[i];
+            InformBot(remaining, display.card.number);
+        }
+    }
+
     public void SetStashPos()
     {
         stashPos = stashObject.transform.position;
@@ -108,6 +160,7 @@ public class Bot : MonoBehaviour
         turnPoint = 0;
         stashCount = 0;
         stash = new ArrayList();
+        InitCardCounts();
         UpdateInfoText();
 
     }
@@ -121,12 +174,6 @@ public class Bot : MonoBehaviour
         cardObjects.RemoveAt(i);
         cardDisplays.RemoveAt(i);
         gameManager.CardPlayed(.5f, 1, -1);
-    }
-
-    private void RandomMove()
-    {
-        int a = Random.Range(0, cardDisplays.Count);
-        Move(a);
     }
 
     private int ListContainsNumber(ArrayList list, int number)
