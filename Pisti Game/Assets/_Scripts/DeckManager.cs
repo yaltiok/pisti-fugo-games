@@ -5,7 +5,8 @@ using TMPro;
 public class DeckManager : MonoBehaviour
 {
 
-    private const float DEAL_TIME = 0.2f;
+    private const float DEAL_TIME = .5f;
+    private const float DEAL_FACTOR = .5f;
 
     public ScriptableCard[] cards;
 
@@ -85,10 +86,10 @@ public class DeckManager : MonoBehaviour
         for (int i = 0; i < arr.Length; i++)
         {
 
-            arr[i].CardDealTween(arr[i].positionInHand, 1f);
+            arr[i].CardDealTween(arr[i].positionInHand, DEAL_TIME);
             deckCount--;
             deckTextElement.text = deckCount.ToString();
-            yield return new WaitForSeconds(DEAL_TIME);
+            yield return new WaitForSeconds(DEAL_TIME* DEAL_FACTOR);
         }
     }
 
@@ -139,11 +140,11 @@ public class DeckManager : MonoBehaviour
     {
         for (int i = 0; i < arr.Length; i++)
         {
-            arr[i].CardDealTween(arr[i].positionInHand, 1f);
+            arr[i].CardDealTween(arr[i].positionInHand, DEAL_TIME);
 
             deckCount--;
             deckTextElement.text = deckCount.ToString();
-            yield return new WaitForSeconds(DEAL_TIME);
+            yield return new WaitForSeconds(DEAL_TIME * DEAL_FACTOR);
 
         }
 

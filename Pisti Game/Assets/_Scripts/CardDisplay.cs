@@ -45,12 +45,6 @@ public class CardDisplay : MonoBehaviour
         SetSprites();
     }
 
-    public void TweenToPosition(Vector3 toPosition)
-    {
-        transform.DOMove(toPosition, 1f)
-            .SetEase(Ease.OutQuint);
-    }
-
     public void TweenToPosition(Vector3 toPosition, float length)
     {
         transform.DOMove(toPosition, length)
@@ -59,11 +53,6 @@ public class CardDisplay : MonoBehaviour
     public void TweenWithEaseInBack(Transform obj, Vector3 toPosition, float length, int nextPhase, float delay, bool last)
     {
         tweenManager.TweenWithEaseInBack(obj, toPosition, length, nextPhase, delay, last);
-    }
-
-    public void TweenWithEaseInBack(Transform obj, Vector3 toPosition, float length, float delay)
-    {
-        tweenManager.TweenWithEaseInBack(obj, toPosition, length, delay);
     }
 
     public void CardDealTween(Vector3 toPos, float length)

@@ -26,10 +26,12 @@ public class Bot : MonoBehaviour
     public int stashCount = 0;
 
 
-    public void PlayCard(CardDisplay lastPlayedDisplay)
+    public void PlayCard(CardDisplay lastPlayedDisplay, int midCount, int midPoint)
     {
+        int jackIdx = ListContainsNumber(cardDisplays, 11);
         if (lastPlayedDisplay != null)
         {
+            // If bot has the card. Play it.
             for (int i = 0; i < cardDisplays.Count; i++)
             {
                 CardDisplay cardInHand = (CardDisplay)cardDisplays[i];
@@ -40,11 +42,18 @@ public class Bot : MonoBehaviour
                     return;
                 }
             }
-            RandomMove();
-            return;
+
+            //If there are more than 4 cards on table and if bot has Jack, play Jack.
+            if ((midCount >= 5 || midPoint > 1) && jackIdx > 0)
+            {
+                Debug.Log("Playing Jack because : " + midPoint + " " + midCount);
+
+                Move(jackIdx);
+                return;
+            }
 
         }
-        
+
         RandomMove();
         
     }
@@ -93,7 +102,7 @@ public class Bot : MonoBehaviour
         stashPos = stashObject.transform.position;
     }
 
-    public void TurnEnd()
+    public void RoundEnd()
     {
         totalPoint += turnPoint;
         turnPoint = 0;
@@ -118,6 +127,20 @@ public class Bot : MonoBehaviour
     {
         int a = Random.Range(0, cardDisplays.Count);
         Move(a);
+    }
+
+    private int ListContainsNumber(ArrayList list, int number)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            CardDisplay display = (CardDisplay)list[i];
+            
+            if (display.card.number == number)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public void RepositionCards(float cardWidth, float gap)

@@ -69,13 +69,6 @@ public class Player : MonoBehaviour
         MoveToStash(objects, displays,nextPhase, delay);
     }
 
-    private void ResetValues()
-    {
-        turnPoint = 0;
-        totalPoint = 0;
-        stashCount = 0;
-    }
-
     private void CardHandle()
     {
         
@@ -90,10 +83,12 @@ public class Player : MonoBehaviour
                     {
                         selected = hit.transform.gameObject;
                         selectedDisplay = selected.GetComponent<CardDisplay>();
-                        gameManager.selected = selected;
-                        gameManager.selectedDisplay = selectedDisplay;
+                        
                         holdingCard = true;
-                        //selectedDisplay.shadow.SetActive(true);
+
+
+
+
                         ShadowTween(selectedDisplay, true);
                         if (selectedDisplay.player == 1)
                         {
@@ -115,6 +110,8 @@ public class Player : MonoBehaviour
                 if (selected.transform.localPosition.y > handAreaHeight - transform.position.y && selectedDisplay.player == 1)
                 {
                     // Play Card
+                    gameManager.selected = selected;
+                    gameManager.selectedDisplay = selectedDisplay;
                     cardObjects.RemoveAt(holdIndex);
                     cardDisplays.RemoveAt(holdIndex);
                     gameManager.CardPlayed(1f, 2, 1);
@@ -130,9 +127,8 @@ public class Player : MonoBehaviour
                 PutBackInHand();
             }
             holdingCard = false;
-            selected = null;
-            //selectedDisplay.shadow.SetActive(false);
             ShadowTween(selectedDisplay, false);
+            selected = null;
             selectedDisplay = null;
             areaHighlight.ResetHighlight();
 
@@ -162,7 +158,6 @@ public class Player : MonoBehaviour
     private void PutBackInHand()
     {
         selectedDisplay.TweenToPosition(selectedDisplay.positionInHand,0.5f);
-
     }
 
     private int GetCardIndex()
@@ -185,22 +180,6 @@ public class Player : MonoBehaviour
         string temp = arr[0] + "| " + turnPoint + " | " + totalPoint;
         infoText.text = temp;
     }
-
-    //public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays, float delay)
-    //{
-    //    bool last = false;
-    //    for (int i = 0; i < objects.Length; i++)
-    //    {
-    //        stash.Add(objects[i]);
-    //        objects[i].transform.SetParent(stashObject.transform);
-    //        if (i == objects.Length - 1)
-    //        {
-    //            last = true;
-    //        }
-    //        cardDisplays[i].TweenWithEaseInBack(objects[i].transform, stashPos, 1f, 2, delay + i * .02f, last);
-
-    //    }
-    //}
 
     public void MoveToStash(GameObject[] objects, CardDisplay[] cardDisplays,int nextPhase, float delay)
     {
@@ -243,7 +222,7 @@ public class Player : MonoBehaviour
          
     }
 
-    public void TurnEnd()
+    public void RoundEnd()
     {
         totalPoint += turnPoint;
         turnPoint = 0;

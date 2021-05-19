@@ -51,7 +51,7 @@ public class TweenManager : MonoBehaviour
           .Insert(0, textElement.rectTransform.DOScale(new Vector3(7, 7, 7), textSequence.Duration()/2f))
           .OnComplete(() => {
               textElement.rectTransform.localScale = new Vector3(1,1,1);
-              gameManager.asd();
+              gameManager.StartDeal();
           });
         textSequence.Play();
     }

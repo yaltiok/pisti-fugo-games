@@ -5,7 +5,9 @@ public class GameManager : MonoBehaviour
 {
 
 
-    private const float DEAL_TIME = 0.2f;
+    private const float DEAL_TIME = 0.5f;
+    private const float DEAL_FACTOR = .5f;
+
 
     private const float CARD_Z_OFFSET = -0.1f;
 
@@ -31,12 +33,18 @@ public class GameManager : MonoBehaviour
     public Transform middlePos;
     public GameObject cardPrefab;
     public GameObject defaultSprite;
+    public GameObject endGamePanel;
+    public TMP_Text winnerTextElement;
+
     private SpriteRenderer defaultRenderer;
+
     private float cardWidth;
     private float cardHeight;
 
 
     private int middleCount = 0;
+
+    private bool firstRound = true;
 
 
 
@@ -73,7 +81,7 @@ public class GameManager : MonoBehaviour
         SetHandPositions();
         SetDeckPosition();
         CalculateCardPositions(handCount);
-        StartCoroutine(DealFirstHands());
+        StartDeal();
         playerScript.lastCardZ = cardZ_Offset;
         
 
@@ -109,20 +117,7 @@ public class GameManager : MonoBehaviour
 
     public void DealNewHands()
     {
-        if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
-        {
-            string winner = "";
-            if (playerScript.totalPoint > botScript.totalPoint)
-            {
-                winner = "player";
-            }
-            else
-            {
-                winner = "bot";
-            }
-            Debug.Log("Round winner is: " + winner);
-            return;
-        }
+        
         
         if (!CheckRoundEnd())
         {
@@ -137,20 +132,31 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+    public void StartDeal()
+    {
+        StartCoroutine(DealHands());
+    }
+
     private void NewRound()
     {
+        playerScript.RoundEnd();
+        botScript.RoundEnd();
+
+        if (CheckGameEnd())
+        {
+            endGamePanel.SetActive(true);
+            return;
+        }
+
         deckManager.CreateNewDeck();
         tweenManager.TextTween(roundText, 1f, 1f);
-        playerScript.TurnEnd();
-        botScript.TurnEnd();
+        
         firstCard = true;
+        firstRound = true;
         
     }
     
-    public void asd()
-    {
-        StartCoroutine(DealFirstHands());
-    }
     
     private void DealMiddle()
     {
@@ -159,30 +165,43 @@ public class GameManager : MonoBehaviour
         lastPlayedDisplay = lastPlayed.GetComponent<CardDisplay>();
         middleCount = 4;
         middleCountText.text = middleCount.ToString();
-
-    }
-
-    public IEnumerator DealFirstHands()
-    {
-        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, CARD_GAP);
-        yield return new WaitForSeconds(handCount * DEAL_TIME);
-        deckManager.CreateHand(cardPrefab, handCount, botHand, -1, CARD_GAP);
-        yield return new WaitForSeconds(handCount * DEAL_TIME);
-        DealMiddle();
-        yield return new WaitForSeconds(handCount * DEAL_TIME);
-        ChangePhase(1);
+        firstRound = false;
 
     }
 
     public IEnumerator DealHands()
     {
-        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, CARD_GAP);
-        yield return new WaitForSeconds(handCount * DEAL_TIME);
-        deckManager.CreateHand(cardPrefab, handCount, botHand, -1, CARD_GAP);
-        CheckDeckCount();
-        yield return new WaitForSeconds(handCount * DEAL_TIME);
-        ChangePhase(1);
 
+        deckManager.CreateHand(cardPrefab, handCount, playerHand, 1, CARD_GAP);
+        yield return new WaitForSeconds(handCount * DEAL_TIME * DEAL_FACTOR);
+        deckManager.CreateHand(cardPrefab, handCount, botHand, -1, CARD_GAP);
+        yield return new WaitForSeconds(handCount * DEAL_TIME * DEAL_FACTOR);
+        if (firstRound)
+        {
+            DealMiddle();
+            yield return new WaitForSeconds(handCount * DEAL_TIME * DEAL_FACTOR);
+
+        }
+        CheckDeckCount();
+        ChangePhase(1);
+    }
+
+    private bool CheckGameEnd()
+    {
+        if (playerScript.totalPoint >= pointToWin || botScript.totalPoint >= pointToWin)
+        {
+            string winner = "Kazanan: ";
+            if (playerScript.totalPoint >= botScript.totalPoint)
+            {
+                winnerTextElement.text = winner + "Siz!";
+            }
+            else
+            {
+                winnerTextElement.text = winner + "Bot!";
+            }
+            return true;
+        }
+        return false;
     }
 
     private void CheckDeckCount()
@@ -281,7 +300,13 @@ public class GameManager : MonoBehaviour
 
     public void BotMove()
     {
-         botScript.PlayCard(lastPlayedDisplay);
+        int midPoint = 0;
+        for (int i = 0; i < middlePos.childCount; i++)
+        {
+            CardDisplay display = middlePos.GetChild(i).GetComponent<CardDisplay>();
+            midPoint += display.card.value;
+        }
+        botScript.PlayCard(lastPlayedDisplay, middleCount, midPoint);
     }
 
 
